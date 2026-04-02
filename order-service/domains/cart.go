@@ -1,8 +1,7 @@
 package domains
 
 type Cart struct {
-	id int64
+	ID int64
 
-	userId   int64
-	coversId int64
+	UserID int64
 }

@@ -3,10 +3,10 @@ package domains
 import "time"
 
 type Order struct {
-	id        int64
-	status    int // enum из файла status
-	createdAt time.Time
+	ID        int64
+	Status    int // enum из файла status
+	CreatedAt time.Time
 
-	userId   int64
-	coversId []int64
+	UserID          int64
+	OrdersHistoryID int64
 }

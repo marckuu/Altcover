@@ -1,8 +1,8 @@
 package domains
 
 type Wallet struct {
-	id      int64
-	balance float64
+	ID      int64
+	Balance float64
 
-	userId int64
+	UserID int64
 }

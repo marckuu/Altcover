@@ -17,7 +17,7 @@ type CommentRepository struct {
 
 func (c *CommentRepository) AddComment(ctx context.Context, comment domains.Comment) error {
 	query := `
-	INSERT INTO comment (text, coverID, userID)
+	INSERT INTO comment (text, cover_id, user_id)
 	VALUES ($1, $2, $3)
 `
 	if _, err := c.connection.Exec(ctx, query, comment.Text, comment.CoverId, comment.UserId); err != nil {
@@ -29,7 +29,7 @@ func (c *CommentRepository) AddComment(ctx context.Context, comment domains.Comm
 
 func (c *CommentRepository) GetCommentByID(ctx context.Context, commentID int64) (domains.Comment, error) {
 	query := `
-	SELECT id, text, coverID, userID
+	SELECT id, text, cover_id, user_id
 	FROM comment
 	WHERE id = $1;
 `
@@ -46,7 +46,7 @@ func (c *CommentRepository) GetCommentByID(ctx context.Context, commentID int64)
 
 func (c *CommentRepository) GetComments(ctx context.Context, offset int, limit int) ([]domains.Comment, error) {
 	query := `
-	SELECT id, text, coverID, userID
+	SELECT id, text, cover_id, user_id
 	FROM comment
 	OFFSET $1
 	LIMIT $2
@@ -80,10 +80,10 @@ func (c *CommentRepository) GetComments(ctx context.Context, offset int, limit i
 func (c *CommentRepository) UpdateComment(ctx context.Context, comment domains.Comment) error {
 	query := `
 	UPDATE comment
-	SET text = $1, coverID = $2
+	SET text = $1, cover_id = $2, user_id = $3
 	WHERE id = $3;
 `
-	tag, err := c.connection.Exec(ctx, query, comment.Text, comment.CoverId, comment.ID)
+	tag, err := c.connection.Exec(ctx, query, comment.Text, comment.CoverId, comment.UserId, comment.ID)
 	if err != nil {
 		return fmt.Errorf("comment repo -> update: %w", err)
 	}
