@@ -1,5 +1,6 @@
 package domains
 
 type OrdersHistory struct {
-	ID int64
+	UserID    int64
+	OrdersIDs []int64
 }

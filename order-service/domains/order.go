@@ -7,6 +7,5 @@ type Order struct {
 	Status    int // enum из файла status
 	CreatedAt time.Time
 
-	UserID          int64
-	OrdersHistoryID int64
+	UserID int64
 }
