@@ -1,9 +1,9 @@
 package domains
 
 type Comment struct {
-	ID   int64
+	ID   string
 	Text string
 
-	CoverId int64
-	UserId  int64
+	CoverId string
+	UserId  string
 }

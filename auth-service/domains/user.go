@@ -1,9 +1,13 @@
 package domains
 
-import "time"
+import (
+	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
+)
 
 type User struct {
-	ID           int64
+	ID           pgtype.UUID
 	Nickname     string
 	Role         int // Это константа из roles
 	PasswordHash string

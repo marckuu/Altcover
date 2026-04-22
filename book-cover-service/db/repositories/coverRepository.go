@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"Altcover/book-cover-service/domains"
+	"book-cover-service/domains"
 	"context"
 	"errors"
 	"fmt"
@@ -14,6 +14,8 @@ var errCoverNotFound = errors.New("обложка не найдена")
 type CoverRepository struct {
 	connection *pgx.Conn
 }
+
+// CRUD операции
 
 func (c *CoverRepository) AddCover(ctx context.Context, cover domains.Cover) error {
 	query := `
@@ -152,4 +154,94 @@ func (c *CoverRepository) DeleteCover(ctx context.Context, coverID int64) error 
 	}
 
 	return nil
+}
+
+// Дополнительные операции
+
+func (c *CoverRepository) GetCoversByDesignerID(ctx context.Context, offset int, limit int, designerID string) ([]domains.Cover, error) {
+	query := `
+	SELECT id, title, description, likes, images_keys, status, designer_id, designer_nickname, designer_avatar_key
+	FROM cover
+	WHERE designer_id = $1
+	OFFSET $2
+	LIMIT $3;
+`
+	resultRows, err := c.connection.Query(ctx, query, designerID, offset, limit)
+	if err != nil {
+		return []domains.Cover{}, fmt.Errorf("cover repository -> get all by user id -> query: %w", err)
+	}
+
+	defer resultRows.Close()
+
+	var covers []domains.Cover
+
+	for resultRows.Next() {
+		var cover domains.Cover
+
+		err = resultRows.Scan(&cover.ID,
+			&cover.Title,
+			&cover.Description,
+			&cover.Likes,
+			&cover.ImagesKeys,
+			&cover.Status,
+			&cover.DesignerID,
+			&cover.DesignerNickname,
+			&cover.DesignerAvatarKey)
+
+		if err != nil {
+			return []domains.Cover{}, fmt.Errorf("cover repository -> get all by user id -> parsing: %w", err)
+		}
+
+		covers = append(covers, cover)
+	}
+
+	if resultRows.Err() != nil {
+		return []domains.Cover{}, fmt.Errorf("cover repository -> get all by user id -> query result: %w", err)
+	}
+
+	return covers, nil
+}
+
+func (c *CoverRepository) GetCoversByUserID(ctx context.Context, offset int, limit int, userID string) ([]domains.Cover, error) {
+	query := `
+	SELECT id, title, description, likes, images_keys, status, designer_id, designer_nickname, designer_avatar_key
+	FROM cover
+	WHERE designer_id = $1
+	OFFSET $2
+	LIMIT $3;
+`
+	resultRows, err := c.connection.Query(ctx, query, userID, offset, limit)
+	if err != nil {
+		return []domains.Cover{}, fmt.Errorf("cover repository -> get all by user id -> query: %w", err)
+	}
+
+	defer resultRows.Close()
+
+	var covers []domains.Cover
+
+	for resultRows.Next() {
+		var cover domains.Cover
+
+		err = resultRows.Scan(&cover.ID,
+			&cover.Title,
+			&cover.Description,
+			&cover.Likes,
+			&cover.ImagesKeys,
+			&cover.Status,
+			&cover.DesignerID,
+			&cover.DesignerNickname,
+			&cover.DesignerAvatarKey)
+
+		if err != nil {
+			return []domains.Cover{}, fmt.Errorf("cover repository -> get all by user id -> parsing: %w", err)
+		}
+
+		covers = append(covers, cover)
+	}
+
+	if resultRows.Err() != nil {
+		return []domains.Cover{}, fmt.Errorf("cover repository -> get all by user id -> query result: %w", err)
+	}
+
+	return covers, nil
 }

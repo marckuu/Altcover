@@ -13,18 +13,8 @@ CREATE TABLE wallet (
     user_id UUID NOT NULL
 );
 
-CREATE TABLE orders_history (
-    user_id UUID NOT NULL,
-    order_id UUID NOT NULL
-);
-
-CREATE TABLE cart (
-    id UUID DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL
-);
-
-CREATE TABLE carts_orders (
-    cart_id UUID NOT NULL,
+CREATE TABLE order_item (
+    order_id UUID NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES "order"(id),
     cover_id UUID NOT NULL
-);
-
+)

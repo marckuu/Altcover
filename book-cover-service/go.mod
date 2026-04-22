@@ -1,10 +1,10 @@
-module Altcover
+module book-cover-service
 
-go 1.25.0
+go 1.25.5
 
 require (
 	github.com/gorilla/mux v1.8.1
-	github.com/jackc/pgx/v5 v5.9.1
+	github.com/jackc/pgx/v5 v5.9.2
 )
 
 require (
