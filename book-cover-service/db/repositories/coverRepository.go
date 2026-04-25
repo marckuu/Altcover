@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -38,7 +39,7 @@ func (c *CoverRepository) AddCover(ctx context.Context, cover domains.Cover) err
 	return nil
 }
 
-func (c *CoverRepository) GetCoverByID(ctx context.Context, coverID int64) (domains.Cover, error) {
+func (c *CoverRepository) GetCoverByID(ctx context.Context, coverID uuid.UUID) (domains.Cover, error) {
 	query := `
 	SELECT id, title, description, likes, images_keys, status, designer_id, designer_nickname, designer_avatar_key
 	FROM cover
@@ -139,7 +140,7 @@ func (c *CoverRepository) UpdateCover(ctx context.Context, cover domains.Cover) 
 	return nil
 }
 
-func (c *CoverRepository) DeleteCover(ctx context.Context, coverID int64) error {
+func (c *CoverRepository) DeleteCover(ctx context.Context, coverID uuid.UUID) error {
 	query := `
 	DELETE FROM cover
 	WHERE id = $1;
@@ -158,7 +159,7 @@ func (c *CoverRepository) DeleteCover(ctx context.Context, coverID int64) error 
 
 // Дополнительные операции
 
-func (c *CoverRepository) GetCoversByDesignerID(ctx context.Context, offset int, limit int, designerID string) ([]domains.Cover, error) {
+func (c *CoverRepository) GetCoversByDesignerID(ctx context.Context, offset int, limit int, designerID uuid.UUID) ([]domains.Cover, error) {
 	query := `
 	SELECT id, title, description, likes, images_keys, status, designer_id, designer_nickname, designer_avatar_key
 	FROM cover
@@ -202,7 +203,7 @@ func (c *CoverRepository) GetCoversByDesignerID(ctx context.Context, offset int,
 	return covers, nil
 }
 
-func (c *CoverRepository) GetCoversByUserID(ctx context.Context, offset int, limit int, userID string) ([]domains.Cover, error) {
+func (c *CoverRepository) GetCoversByUserID(ctx context.Context, offset int, limit int, userID uuid.UUID) ([]domains.Cover, error) {
 	query := `
 	SELECT id, title, description, likes, images_keys, status, designer_id, designer_nickname, designer_avatar_key
 	FROM cover
@@ -241,6 +242,47 @@ func (c *CoverRepository) GetCoversByUserID(ctx context.Context, offset int, lim
 
 	if resultRows.Err() != nil {
 		return []domains.Cover{}, fmt.Errorf("cover repository -> get all by user id -> query result: %w", err)
+	}
+
+	return covers, nil
+}
+
+func (c *CoverRepository) GetCoversByIDs(ctx context.Context, coversIDs []uuid.UUID) ([]domains.Cover, error) {
+	query := `
+	SELECT id, title, description, likes, images_keys, status, designer_id, designer_nickname, designer_avatar_key
+	FROM cover
+	WHERE id = ANY($1);
+`
+	resultRow, err := c.connection.Query(ctx, query, coversIDs)
+	if err != nil {
+		return []domains.Cover{}, fmt.Errorf("cover repository -> get covers by ids -> query: %w", err)
+	}
+
+	defer resultRow.Close()
+
+	var covers []domains.Cover
+
+	for resultRow.Next() {
+		var cover domains.Cover
+		err = resultRow.Scan(&cover.ID,
+			&cover.Title,
+			&cover.Description,
+			&cover.Likes,
+			&cover.ImagesKeys,
+			&cover.Status,
+			&cover.DesignerID,
+			&cover.DesignerNickname,
+			&cover.DesignerAvatarKey)
+
+		if err != nil {
+			return []domains.Cover{}, fmt.Errorf("cover repository -> get covers by ids -> parsing: %w", err)
+		}
+
+		covers = append(covers, cover)
+	}
+
+	if resultRow.Err() != nil {
+		return []domains.Cover{}, fmt.Errorf("cover repository -> get covers by ids -> query result: %w", err)
 	}
 
 	return covers, nil

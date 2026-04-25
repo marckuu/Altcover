@@ -29,3 +29,9 @@ CREATE TABLE comment (
 );
 
 
+CREATE TABLE favorites (
+    user_id UUID NOT NULL,
+    cover_id UUID NOT NULL,
+    PRIMARY KEY (user_id, cover_id),
+    FOREIGN KEY (cover_id) REFERENCES cover(id) ON DELETE CASCADE
+)

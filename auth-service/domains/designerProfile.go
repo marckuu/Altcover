@@ -1,10 +1,12 @@
 package domains
 
-import "github.com/jackc/pgx/v5/pgtype"
+import (
+	"github.com/google/uuid"
+)
 
 type DesignerProfile struct {
-	ID        pgtype.UUID
+	ID        uuid.UUID
 	AvatarKey string // Нужно будет настроить работу с minio
 
-	UserID int64
+	UserID uuid.UUID
 }

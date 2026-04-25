@@ -3,11 +3,11 @@ package domains
 import (
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 type User struct {
-	ID           pgtype.UUID
+	ID           uuid.UUID
 	Nickname     string
 	Role         int // Это константа из roles
 	PasswordHash string

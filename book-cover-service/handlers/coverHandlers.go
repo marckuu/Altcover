@@ -1,35 +1,37 @@
 package handlers
 
 import (
-	"book-cover-service/dto"
+	"book-cover-service/domains"
+	"book-cover-service/handlers/tools"
 	"book-cover-service/services"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
 type HTTPCoverHandlers struct {
 	coverService services.CoverService
+	ctx          context.Context
 }
 
-func SendErrorResponse(w http.ResponseWriter, err error, status int) {
-	w.WriteHeader(status)
-	errorResponse := dto.NewErrorResponse(err.Error())
-	if convertErr := json.NewEncoder(w).Encode(errorResponse); convertErr != nil {
-		fmt.Println("Ошибка при записи ответа с информацией об ошибке")
-	}
-}
-
-func (ch *HTTPCoverHandlers) HandleGetCoversByDesignerID(w http.ResponseWriter, r *http.Request, ctx context.Context, offset int, limit int) {
+func (ch *HTTPCoverHandlers) HandleGetCoversByDesignerID(w http.ResponseWriter, r *http.Request, offset int, limit int) {
 	designerID := mux.Vars(r)["designer_id"]
+	designerIDConverted, err := uuid.Parse(designerID)
+	if err != nil {
+		fmt.Println("ошибка преобразования строки в uuid")
+		tools.SendErrorResponse(w, errors.New("не получилось сконвертировать id"), http.StatusInternalServerError)
+		return
+	}
 
-	covers, err := ch.coverService.GetCoversByDesignerID(ctx, offset, limit, designerID)
+	covers, err := ch.coverService.GetCoversByDesignerID(ch.ctx, offset, limit, designerIDConverted)
 	if err != nil {
 		fmt.Printf("Ошибка при получении списка обложек дизайнера: %s", err)
-		SendErrorResponse(w, err, http.StatusInternalServerError)
+		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -41,22 +43,93 @@ func (ch *HTTPCoverHandlers) HandleGetCoversByDesignerID(w http.ResponseWriter, 
 	}
 }
 
-func (ch *HTTPCoverHandlers) HandleGetCoverByUserID(w http.ResponseWriter, r *http.Request, ctx context.Context, offset int, limit int) {
-	userID := mux.Vars(r)["user_id"]
+func (ch *HTTPCoverHandlers) HandleUpdateCover(w http.ResponseWriter, r *http.Request, ctx context.Context) {
 
-	// Получить список обложек по полученным ID
+	// Нужно проверить, что пользователь действительно автор этой обложки
 
-	covers, err := ch.coverService.GetCoversByUserID(ctx, offset, limit, userID)
+	designerID := mux.Vars(r)["designer_id"]
+	designerIDConverted, err := uuid.Parse(designerID)
 	if err != nil {
-		fmt.Printf("Ошибка при получении списка обложек дизайнера: %s", err)
-		SendErrorResponse(w, err, http.StatusInternalServerError)
+		fmt.Println("ошибка преобразования строки в uuid")
+		tools.SendErrorResponse(w, errors.New("не получилось сконвертировать id"), http.StatusInternalServerError)
+		return
+	}
+
+	coverID := mux.Vars(r)["cover_id"]
+	coverIDConverted, err := uuid.Parse(coverID)
+	if err != nil {
+		fmt.Println("ошибка преобразования строки в uuid")
+		tools.SendErrorResponse(w, errors.New("не получилось сконвертировать id"), http.StatusInternalServerError)
+		return
+	}
+
+	cover, err := ch.coverService.GetCoverByID(ctx, coverIDConverted)
+	if err != nil {
+		fmt.Println("Ошибка при проверке авторства")
+		return
+	}
+
+	if cover.DesignerID != designerIDConverted {
+		fmt.Println("дизайнер не является автором данной обложки")
+		tools.SendErrorResponse(w, errors.New("дизайнер не является автором обложки"), http.StatusConflict)
+		return
+	}
+
+	// Считать обложку
+
+	var newCover domains.Cover
+
+	if err = json.NewDecoder(r.Body).Decode(&newCover); err != nil {
+		fmt.Println("ошибка при получении новой обложки из запроса")
+		tools.SendErrorResponse(w, errors.New("ошибка при получении новой обложки из запроса"), http.StatusBadRequest)
+		return
+	}
+
+	// Обновить обложку
+
+	if err = ch.coverService.UpdateCover(ctx, newCover); err != nil {
+		fmt.Println("ошибка при обновлении обложки")
+		tools.SendErrorResponse(w, errors.New("ошибка при обновлении обложки"), http.StatusInternalServerError)
+		return
+	}
+
+	// Вернуть обновленную обложку
+
+	w.WriteHeader(http.StatusOK)
+
+	if err = json.NewEncoder(w).Encode(newCover); err != nil {
+		fmt.Println("Ошибка при записи ответа с полученными обложками")
+		// Логировать оишбку
+	}
+}
+
+func (ch *HTTPCoverHandlers) HandleGetCoverByID(w http.ResponseWriter, r *http.Request, ctx context.Context) {
+	coverID := mux.Vars(r)["cover_id"]
+	coverIDConverted, err := uuid.Parse(coverID)
+	if err != nil {
+		fmt.Println("ошибка преобразования строки в uuid")
+		tools.SendErrorResponse(w, errors.New("не получилось сконвертировать id"), http.StatusInternalServerError)
+		return
+	}
+
+	cover, err := ch.coverService.GetCoverByID(ctx, coverIDConverted)
+	if err != nil {
+		fmt.Printf("Ошибка при получении обложки: %s", err)
+		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 
-	if err = json.NewEncoder(w).Encode(covers); err != nil {
-		fmt.Println("Ошибка при записи ответа с полученными обложками")
+	if err = json.NewEncoder(w).Encode(cover); err != nil {
+		fmt.Println("Ошибка при записи ответа с полученной обложкой")
 		// Логировать оишбку
 	}
 }
+
+//func (ch *HTTPCoverHandlers) HandleSetLikeToCover(w http.ResponseWriter, r *http.Request) {
+//	designerID := mux.Vars(r)["cover_id"]
+//
+//	// Нужно как-то понимать был ли поставлен лайк
+//
+//}
