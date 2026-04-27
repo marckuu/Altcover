@@ -1,34 +1,34 @@
 package services
 
 import (
-	"Altcover/auth-service/domains"
+	"auth-service/domains"
+	"auth-service/repositories"
+	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 type DesignerProfileService struct {
-	designerProfileRepository DesignerProfileRepository
+	designerProfileRepository repositories.DesignerProfileRepository
 }
 
-type DesignerProfileRepository interface {
-}
+func (ds *DesignerProfileService) UpdateDesignerProfile(ctx context.Context, designerProfile domains.DesignerProfile) error {
 
-func (ds *DesignerProfileService) CreateDesignerProfile(designerProfile domains.DesignerProfile) {
-	// 1. Validate
-
-	// 2. repo.Create()
-}
-
-func (ds *DesignerProfileService) GetDesignerProfile(designerProfileID pgtype.UUID) domains.DesignerProfile {
-	// 1. Validate
-
-	// 2. repo.Get()
-
-	return domains.DesignerProfile{}
-}
-
-func (ds *DesignerProfileService) UpdateDesignerProfile(designerProfile domains.DesignerProfile) {
 	// 1. Validate
 
 	// 2. repo.Update()
+	if err := ds.designerProfileRepository.UpdateDesignerProfile(ctx, designerProfile); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ds *DesignerProfileService) GetProfileByUserID(ctx context.Context, userID uuid.UUID) (domains.DesignerProfile, error) {
+	designerProfile, err := ds.designerProfileRepository.GetDesignerProfileByUserID(ctx, userID)
+	if err != nil {
+		return domains.DesignerProfile{}, err
+	}
+
+	return designerProfile, nil
 }

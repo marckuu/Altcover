@@ -46,7 +46,6 @@ func (ch *HTTPCoverHandlers) HandleGetCoversByDesignerID(w http.ResponseWriter, 
 func (ch *HTTPCoverHandlers) HandleUpdateCover(w http.ResponseWriter, r *http.Request, ctx context.Context) {
 
 	// Нужно проверить, что пользователь действительно автор этой обложки
-
 	designerID := mux.Vars(r)["designer_id"]
 	designerIDConverted, err := uuid.Parse(designerID)
 	if err != nil {
@@ -76,7 +75,6 @@ func (ch *HTTPCoverHandlers) HandleUpdateCover(w http.ResponseWriter, r *http.Re
 	}
 
 	// Считать обложку
-
 	var newCover domains.Cover
 
 	if err = json.NewDecoder(r.Body).Decode(&newCover); err != nil {
@@ -86,7 +84,6 @@ func (ch *HTTPCoverHandlers) HandleUpdateCover(w http.ResponseWriter, r *http.Re
 	}
 
 	// Обновить обложку
-
 	if err = ch.coverService.UpdateCover(ctx, newCover); err != nil {
 		fmt.Println("ошибка при обновлении обложки")
 		tools.SendErrorResponse(w, errors.New("ошибка при обновлении обложки"), http.StatusInternalServerError)
@@ -94,7 +91,6 @@ func (ch *HTTPCoverHandlers) HandleUpdateCover(w http.ResponseWriter, r *http.Re
 	}
 
 	// Вернуть обновленную обложку
-
 	w.WriteHeader(http.StatusOK)
 
 	if err = json.NewEncoder(w).Encode(newCover); err != nil {
@@ -125,6 +121,28 @@ func (ch *HTTPCoverHandlers) HandleGetCoverByID(w http.ResponseWriter, r *http.R
 		fmt.Println("Ошибка при записи ответа с полученной обложкой")
 		// Логировать оишбку
 	}
+}
+
+func (ch *HTTPCoverHandlers) HandleAddCover(w http.ResponseWriter, r *http.Request) {
+	// Считать данные обложки из тела запроса
+	var cover domains.Cover
+
+	if err := json.NewDecoder(r.Body).Decode(&cover); err != nil {
+		fmt.Printf("Ошибка при чтении тела запроса: %s", err)
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Провалидировать обложку
+
+	// Записать обложку через репозиторий
+	if err := ch.coverService.AddCover(ch.ctx, cover); err != nil {
+		fmt.Printf("Ошибка при сохранении обложки: %s", err)
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Вернуть в ответ добавленную обложку
 }
 
 //func (ch *HTTPCoverHandlers) HandleSetLikeToCover(w http.ResponseWriter, r *http.Request) {

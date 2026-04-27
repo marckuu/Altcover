@@ -12,6 +12,7 @@ CREATE TABLE users (
 CREATE TABLE designer_profile (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     avatar_key TEXT,
+    nickname VARCHAR(60),
     user_id UUID NOT NULL UNIQUE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

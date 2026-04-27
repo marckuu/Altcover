@@ -46,6 +46,14 @@ func (c *CoverService) UpdateCover(ctx context.Context, cover domains.Cover) err
 	return nil
 }
 
+func (c *CoverService) AddCover(ctx context.Context, cover domains.Cover) error {
+	if err := c.coverRepository.AddCover(ctx, cover); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *CoverService) GetCoversByIDs(ctx context.Context, coversIDs []uuid.UUID) ([]domains.Cover, error) {
 	covers, err := c.coverRepository.GetCoversByIDs(ctx, coversIDs)
 	if err != nil {

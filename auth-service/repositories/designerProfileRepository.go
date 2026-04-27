@@ -1,11 +1,12 @@
 package repositories
 
 import (
-	"Altcover/auth-service/domains"
+	"auth-service/domains"
 	"context"
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -17,7 +18,7 @@ type DesignerProfileRepository struct {
 
 func (d *DesignerProfileRepository) AddDesignerProfile(ctx context.Context, profile domains.DesignerProfile) error {
 	query := `
-	INSERT INTO designer_profile (user_id, avatar_key)
+	INSERT INTO designer_profile (user_id, avatar_key, nickname)
 	VALUES ($1, $2, $3, $4);
 `
 	if _, err := d.connection.Exec(ctx, query, profile.UserID, profile.AvatarKey); err != nil {
@@ -29,7 +30,7 @@ func (d *DesignerProfileRepository) AddDesignerProfile(ctx context.Context, prof
 
 func (d *DesignerProfileRepository) GetDesignerProfileByID(ctx context.Context, profileID int64) (domains.DesignerProfile, error) {
 	query := `
-	SELECT id, user_id, avatar_key
+	SELECT id, user_id, avatar_key, nickname
 	FROM designer_profile
 	WHERE id = $1;
 `
@@ -49,7 +50,7 @@ func (d *DesignerProfileRepository) GetDesignerProfileByID(ctx context.Context, 
 
 func (d *DesignerProfileRepository) GetDesignersProfiles(ctx context.Context, offset int, limit int) ([]domains.DesignerProfile, error) {
 	query := `
-	SELECT id, user_id, avatar_key
+	SELECT id, user_id, avatar_key, nickname
 	FROM designer_profile
 	OFFSET $1
 	LIMIT $2;
@@ -81,12 +82,12 @@ func (d *DesignerProfileRepository) GetDesignersProfiles(ctx context.Context, of
 func (d *DesignerProfileRepository) UpdateDesignerProfile(ctx context.Context, profile domains.DesignerProfile) error {
 	query := `
 	UPDATE designer_profile
-	SET id = $1, 
-	    user_id = $2,
-		avatar_key = $3
+	SET user_id = $1,
+		avatar_key = $2, 
+		nickname = $3
 	WHERE id = $4;
 `
-	tag, err := d.connection.Exec(ctx, query, profile.ID, profile.UserID, profile.AvatarKey)
+	tag, err := d.connection.Exec(ctx, query, profile.UserID, profile.AvatarKey, profile.Nickname, profile.ID)
 	if err != nil {
 		return fmt.Errorf("designer profile repo -> update: %w", err)
 	}
@@ -113,4 +114,24 @@ func (d *DesignerProfileRepository) DeleteDesignerProfile(ctx context.Context, p
 	}
 
 	return nil
+}
+
+func (d *DesignerProfileRepository) GetDesignerProfileByUserID(ctx context.Context, userID uuid.UUID) (domains.DesignerProfile, error) {
+	query := `
+	SELECT id, user_id, avatar_key, nickname
+	FROM designer_profile
+	WHERE user_id = $1;
+`
+	resultRow := d.connection.QueryRow(ctx, query, userID)
+
+	var designerProfile domains.DesignerProfile
+
+	if err := resultRow.Scan(&designerProfile.ID, &designerProfile.UserID, &designerProfile.AvatarKey, &designerProfile.Nickname); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domains.DesignerProfile{}, errUserNotFound
+		}
+		return domains.DesignerProfile{}, fmt.Errorf("designer profile repo -> get by user id: %w", err)
+	}
+
+	return designerProfile, nil
 }
