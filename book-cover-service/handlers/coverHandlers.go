@@ -145,6 +145,12 @@ func (ch *HTTPCoverHandlers) HandleAddCover(w http.ResponseWriter, r *http.Reque
 	// Вернуть в ответ добавленную обложку
 }
 
+func (ch *HTTPCoverHandlers) HandleGetFeedCovers() {
+	// Получить список обложк с наибольшим количеством поставленных лайков за последние три дня
+
+	// Нужно отслеживать количество лайков за последние три дня
+}
+
 //func (ch *HTTPCoverHandlers) HandleSetLikeToCover(w http.ResponseWriter, r *http.Request) {
 //	designerID := mux.Vars(r)["cover_id"]
 //

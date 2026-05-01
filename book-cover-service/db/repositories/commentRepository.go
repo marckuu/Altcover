@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"Altcover/book-cover-service/domains"
+	"book-cover-service/domains"
 	"context"
 	"errors"
 	"fmt"
@@ -18,7 +18,7 @@ type CommentRepository struct {
 func (c *CommentRepository) AddComment(ctx context.Context, comment domains.Comment) error {
 	query := `
 	INSERT INTO comment (text, cover_id, user_id)
-	VALUES ($1, $2, $3)
+	VALUES ($1, $2, $3);
 `
 	if _, err := c.connection.Exec(ctx, query, comment.Text, comment.CoverId, comment.UserId); err != nil {
 		return fmt.Errorf("comment repo -> add: %w", err)

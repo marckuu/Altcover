@@ -4,14 +4,13 @@ CREATE TABLE cover (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
     description VARCHAR(200),
-    likes INT NOT NULL,
     images_keys TEXT,
     status status NOT NULL,
     book_id UUID,
     FOREIGN KEY (book_id) REFERENCES book(id),
     designer_id UUID NOT NULL,
     designer_nickname UUID NOT NULL,
-    designer_avatar_key TEXT NOT NULL,
+    designer_avatar_key TEXT NOT NULL
 );
 
 CREATE TABLE book (
@@ -34,4 +33,10 @@ CREATE TABLE favorites (
     cover_id UUID NOT NULL,
     PRIMARY KEY (user_id, cover_id),
     FOREIGN KEY (cover_id) REFERENCES cover(id) ON DELETE CASCADE
-)
+);
+
+CREATE TABLE cover_like (
+    user_id UUID NOT NULL,
+    cover_id UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
