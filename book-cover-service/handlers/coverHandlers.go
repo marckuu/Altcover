@@ -9,26 +9,42 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
+
+var mostLikedInterval = 3
 
 type HTTPCoverHandlers struct {
 	coverService services.CoverService
 	ctx          context.Context
 }
 
-func (ch *HTTPCoverHandlers) HandleGetCoversByDesignerID(w http.ResponseWriter, r *http.Request, offset int, limit int) {
+func (ch *HTTPCoverHandlers) HandleGetCoversByDesignerID(w http.ResponseWriter, r *http.Request) {
+	offset, err := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 64)
+	if err != nil {
+		fmt.Println("ошибка получения offset из query параметра")
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+	limit, err := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 64)
+	if err != nil {
+		fmt.Println("ошибка получения limit из query параметра")
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
 	designerID := mux.Vars(r)["designer_id"]
 	designerIDConverted, err := uuid.Parse(designerID)
 	if err != nil {
 		fmt.Println("ошибка преобразования строки в uuid")
-		tools.SendErrorResponse(w, errors.New("не получилось сконвертировать id"), http.StatusInternalServerError)
+		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	covers, err := ch.coverService.GetCoversByDesignerID(ch.ctx, offset, limit, designerIDConverted)
+	covers, err := ch.coverService.GetCoversByDesignerID(ch.ctx, int(offset), int(limit), designerIDConverted)
 	if err != nil {
 		fmt.Printf("Ошибка при получении списка обложек дизайнера: %s", err)
 		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
@@ -145,15 +161,32 @@ func (ch *HTTPCoverHandlers) HandleAddCover(w http.ResponseWriter, r *http.Reque
 	// Вернуть в ответ добавленную обложку
 }
 
-func (ch *HTTPCoverHandlers) HandleGetFeedCovers() {
-	// Получить список обложк с наибольшим количеством поставленных лайков за последние три дня
+func (ch *HTTPCoverHandlers) HandleGetFeedCovers(w http.ResponseWriter, r *http.Request) {
+	// Получить список обложек с наибольшим количеством поставленных лайков за последние три дня
+	offset, err := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 64)
+	if err != nil {
+		fmt.Println("ошибка получения offset из query параметра")
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+	limit, err := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 64)
+	if err != nil {
+		fmt.Println("ошибка получения limit из query параметра")
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
 
-	// Нужно отслеживать количество лайков за последние три дня
+	covers, err := ch.coverService.GetMostLikedCovers(ch.ctx, mostLikedInterval, int(offset), int(limit))
+	if err != nil {
+		fmt.Println("не удалось получить список популярных обложек")
+		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	if err = json.NewEncoder(w).Encode(covers); err != nil {
+		fmt.Println("не удалось отправить ответ со списком популярных обложек")
+		// Логировать ошибку
+	}
 }
-
-//func (ch *HTTPCoverHandlers) HandleSetLikeToCover(w http.ResponseWriter, r *http.Request) {
-//	designerID := mux.Vars(r)["cover_id"]
-//
-//	// Нужно как-то понимать был ли поставлен лайк
-//
-//}

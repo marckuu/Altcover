@@ -62,3 +62,12 @@ func (c *CoverService) GetCoversByIDs(ctx context.Context, coversIDs []uuid.UUID
 
 	return covers, nil
 }
+
+func (c *CoverService) GetMostLikedCovers(ctx context.Context, daysNumber int, offset int, limit int) ([]domains.Cover, error) {
+	covers, err := c.coverRepository.GetMostLikedCoversForNDays(ctx, daysNumber, offset, limit)
+	if err != nil {
+		return []domains.Cover{}, err
+	}
+
+	return covers, nil
+}
