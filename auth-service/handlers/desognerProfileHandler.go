@@ -16,10 +16,11 @@ type HTTPDesignerProfileHandlers struct {
 	ctx                    context.Context
 }
 
-func NewHTTPDesignerProfileHandlers() HTTPDesignerProfileHandlers {
+func NewHTTPDesignerProfileHandlers(designerProfileService services.DesignerProfileService,
+	ctx context.Context) HTTPDesignerProfileHandlers {
 	return HTTPDesignerProfileHandlers{
-		designerProfileService: services.DesignerProfileService{},
-		ctx:                    nil,
+		designerProfileService: designerProfileService,
+		ctx:                    ctx,
 	}
 }
 
@@ -42,7 +43,7 @@ func (d *HTTPDesignerProfileHandlers) HandleCreateDesignerProfile(w http.Respons
 	}
 }
 
-func (d *HTTPDesignerProfileHandlers) HandleUpdateCurrentDesignerProfile(w http.ResponseWriter, r *http.Request) {
+func (d *HTTPDesignerProfileHandlers) HandleUpdateMyDesignerProfile(w http.ResponseWriter, r *http.Request) {
 	// Считать новый профиль и тела
 	var newDesignerProfile domains.DesignerProfile
 
@@ -79,7 +80,7 @@ func (d *HTTPDesignerProfileHandlers) HandleUpdateCurrentDesignerProfile(w http.
 
 }
 
-func (d *HTTPDesignerProfileHandlers) HandleGetCurrentDesignerProfile(w http.ResponseWriter, r *http.Request) {
+func (d *HTTPDesignerProfileHandlers) HandleGetMyDesignerProfile(w http.ResponseWriter, r *http.Request) {
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
 		fmt.Printf("Не удалось распознать переданный идентификатор: %s", err)
@@ -104,7 +105,7 @@ func (d *HTTPDesignerProfileHandlers) HandleGetCurrentDesignerProfile(w http.Res
 	}
 }
 
-func (d *HTTPDesignerProfileHandlers) HandleDeleteCurrentDesignerProfile(w http.ResponseWriter, r *http.Request) {
+func (d *HTTPDesignerProfileHandlers) HandleDeleteMyDesignerProfile(w http.ResponseWriter, r *http.Request) {
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
 		fmt.Printf("Не удалось получить ID пользователя из токена: %s", err)

@@ -29,12 +29,14 @@ func (f *FavoritesRepository) AddCoverToFavorites(ctx context.Context, userID uu
 	return nil
 }
 
-func (f *FavoritesRepository) GetFavoriteCoversIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+func (f *FavoritesRepository) GetFavoriteCoversIDs(ctx context.Context, userID uuid.UUID, offset int, limit int) ([]uuid.UUID, error) {
 	query := `
 	SELECT (cover_id) FROM favorites
-	WHERE user_id = $1;
+	WHERE user_id = $1
+	OFFSET $2 
+	LIMIT $3;
 `
-	resultRow, err := f.connection.Query(ctx, query, userID)
+	resultRow, err := f.connection.Query(ctx, query, userID, offset, limit)
 	if err != nil {
 		return []uuid.UUID{}, fmt.Errorf("cover repository -> get favorites ids -> query: %w", err)
 	}

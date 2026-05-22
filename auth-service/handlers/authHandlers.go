@@ -24,12 +24,14 @@ type HTTPAuthHandlers struct {
 	ctx          context.Context
 }
 
-func NewHTTPAuthHandler() HTTPAuthHandlers {
+func NewHTTPAuthHandler(tokenService services.TokenService,
+	JWTManager repositories.JWTManager,
+	userService services.UserService, ctx context.Context) HTTPAuthHandlers {
 	return HTTPAuthHandlers{
-		tokenService: services.TokenService{},
-		jwtManager:   repositories.JWTManager{},
-		userService:  services.UserService{},
-		ctx:          nil,
+		tokenService: tokenService,
+		jwtManager:   JWTManager,
+		userService:  userService,
+		ctx:          ctx,
 	}
 }
 

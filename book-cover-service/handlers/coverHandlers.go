@@ -3,6 +3,7 @@ package handlers
 import (
 	"book-cover-service/domains"
 	"book-cover-service/handlers/tools"
+	"book-cover-service/middleware"
 	"book-cover-service/services"
 	"context"
 	"encoding/json"
@@ -22,7 +23,14 @@ type HTTPCoverHandlers struct {
 	ctx          context.Context
 }
 
-func (ch *HTTPCoverHandlers) HandleGetCoversByDesignerID(w http.ResponseWriter, r *http.Request) {
+func NewCoverHandlers(coverService services.CoverService, ctx context.Context) HTTPCoverHandlers {
+	return HTTPCoverHandlers{
+		coverService: coverService,
+		ctx:          ctx,
+	}
+}
+
+func (c *HTTPCoverHandlers) HandleGetMyCoversAsDesigner(w http.ResponseWriter, r *http.Request) {
 	offset, err := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 64)
 	if err != nil {
 		fmt.Println("ошибка получения offset из query параметра")
@@ -36,15 +44,14 @@ func (ch *HTTPCoverHandlers) HandleGetCoversByDesignerID(w http.ResponseWriter, 
 		return
 	}
 
-	designerID := mux.Vars(r)["designer_id"]
-	designerIDConverted, err := uuid.Parse(designerID)
+	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
-		fmt.Println("ошибка преобразования строки в uuid")
-		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
+		fmt.Printf("Не удалось получить ID пользователя из токена: %s", err)
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	covers, err := ch.coverService.GetCoversByDesignerID(ch.ctx, int(offset), int(limit), designerIDConverted)
+	covers, err := c.coverService.GetCoversByUserID(c.ctx, int(offset), int(limit), userID)
 	if err != nil {
 		fmt.Printf("Ошибка при получении списка обложек дизайнера: %s", err)
 		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
@@ -59,32 +66,66 @@ func (ch *HTTPCoverHandlers) HandleGetCoversByDesignerID(w http.ResponseWriter, 
 	}
 }
 
-func (ch *HTTPCoverHandlers) HandleUpdateCover(w http.ResponseWriter, r *http.Request, ctx context.Context) {
+func (c *HTTPCoverHandlers) HandleGetCoversByDesignerUserID(w http.ResponseWriter, r *http.Request) {
+	offset, err := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 64)
+	if err != nil {
+		fmt.Println("ошибка получения offset из query параметра")
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+	limit, err := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 64)
+	if err != nil {
+		fmt.Println("ошибка получения limit из query параметра")
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
 
-	// Нужно проверить, что пользователь действительно автор этой обложки
-	designerID := mux.Vars(r)["designer_id"]
-	designerIDConverted, err := uuid.Parse(designerID)
+	userIDRaw := mux.Vars(r)["user_id"]
+	userID, err := uuid.Parse(userIDRaw)
+	if err != nil {
+		fmt.Println("ошибка преобразования строки в uuid")
+		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	covers, err := c.coverService.GetCoversByUserID(c.ctx, int(offset), int(limit), userID)
+	if err != nil {
+		fmt.Printf("Ошибка при получении списка обложек дизайнера: %s", err)
+		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	if err = json.NewEncoder(w).Encode(covers); err != nil {
+		fmt.Println("Ошибка при записи ответа с полученными обложками")
+		// Логировать оишбку
+	}
+}
+
+func (c *HTTPCoverHandlers) HandleUpdateCover(w http.ResponseWriter, r *http.Request) {
+	userID, err := middleware.GetUserIDFromContext(r.Context())
+	if err != nil {
+		fmt.Printf("Не удалось получить ID пользователя из токена: %s", err)
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	coverIDRaw := mux.Vars(r)["cover_id"]
+	coverID, err := uuid.Parse(coverIDRaw)
 	if err != nil {
 		fmt.Println("ошибка преобразования строки в uuid")
 		tools.SendErrorResponse(w, errors.New("не получилось сконвертировать id"), http.StatusInternalServerError)
 		return
 	}
 
-	coverID := mux.Vars(r)["cover_id"]
-	coverIDConverted, err := uuid.Parse(coverID)
-	if err != nil {
-		fmt.Println("ошибка преобразования строки в uuid")
-		tools.SendErrorResponse(w, errors.New("не получилось сконвертировать id"), http.StatusInternalServerError)
-		return
-	}
-
-	cover, err := ch.coverService.GetCoverByID(ctx, coverIDConverted)
+	cover, err := c.coverService.GetCoverByID(c.ctx, coverID)
 	if err != nil {
 		fmt.Println("Ошибка при проверке авторства")
 		return
 	}
 
-	if cover.DesignerID != designerIDConverted {
+	if cover.UserID != userID {
 		fmt.Println("дизайнер не является автором данной обложки")
 		tools.SendErrorResponse(w, errors.New("дизайнер не является автором обложки"), http.StatusConflict)
 		return
@@ -100,7 +141,7 @@ func (ch *HTTPCoverHandlers) HandleUpdateCover(w http.ResponseWriter, r *http.Re
 	}
 
 	// Обновить обложку
-	if err = ch.coverService.UpdateCover(ctx, newCover); err != nil {
+	if err = c.coverService.UpdateCover(c.ctx, newCover); err != nil {
 		fmt.Println("ошибка при обновлении обложки")
 		tools.SendErrorResponse(w, errors.New("ошибка при обновлении обложки"), http.StatusInternalServerError)
 		return
@@ -115,7 +156,7 @@ func (ch *HTTPCoverHandlers) HandleUpdateCover(w http.ResponseWriter, r *http.Re
 	}
 }
 
-func (ch *HTTPCoverHandlers) HandleGetCoverByID(w http.ResponseWriter, r *http.Request, ctx context.Context) {
+func (c *HTTPCoverHandlers) HandleGetCoverByID(w http.ResponseWriter, r *http.Request) {
 	coverID := mux.Vars(r)["cover_id"]
 	coverIDConverted, err := uuid.Parse(coverID)
 	if err != nil {
@@ -124,7 +165,7 @@ func (ch *HTTPCoverHandlers) HandleGetCoverByID(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	cover, err := ch.coverService.GetCoverByID(ctx, coverIDConverted)
+	cover, err := c.coverService.GetCoverByID(c.ctx, coverIDConverted)
 	if err != nil {
 		fmt.Printf("Ошибка при получении обложки: %s", err)
 		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
@@ -139,7 +180,7 @@ func (ch *HTTPCoverHandlers) HandleGetCoverByID(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (ch *HTTPCoverHandlers) HandleAddCover(w http.ResponseWriter, r *http.Request) {
+func (c *HTTPCoverHandlers) HandleAddCover(w http.ResponseWriter, r *http.Request) {
 	// Считать данные обложки из тела запроса
 	var cover domains.Cover
 
@@ -149,10 +190,20 @@ func (ch *HTTPCoverHandlers) HandleAddCover(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	userID, err := middleware.GetUserIDFromContext(r.Context())
+	if err != nil {
+		fmt.Printf("Не удалось получить ID пользователя из токена: %s", err)
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Сделать запрос на получение профиля этого пользователя и заполнить их
+	_ = userID
+
 	// Провалидировать обложку
 
 	// Записать обложку через репозиторий
-	if err := ch.coverService.AddCover(ch.ctx, cover); err != nil {
+	if err := c.coverService.AddCover(c.ctx, cover); err != nil {
 		fmt.Printf("Ошибка при сохранении обложки: %s", err)
 		tools.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
@@ -161,7 +212,7 @@ func (ch *HTTPCoverHandlers) HandleAddCover(w http.ResponseWriter, r *http.Reque
 	// Вернуть в ответ добавленную обложку
 }
 
-func (ch *HTTPCoverHandlers) HandleGetFeedCovers(w http.ResponseWriter, r *http.Request) {
+func (c *HTTPCoverHandlers) HandleGetFeedCovers(w http.ResponseWriter, r *http.Request) {
 	offset, err := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 64)
 	if err != nil {
 		fmt.Println("ошибка получения offset из query параметра")
@@ -175,7 +226,7 @@ func (ch *HTTPCoverHandlers) HandleGetFeedCovers(w http.ResponseWriter, r *http.
 		return
 	}
 
-	covers, err := ch.coverService.GetMostLikedCovers(ch.ctx, mostLikedInterval, int(offset), int(limit))
+	covers, err := c.coverService.GetMostLikedCovers(c.ctx, mostLikedInterval, int(offset), int(limit))
 	if err != nil {
 		fmt.Println("не удалось получить список популярных обложек")
 		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
@@ -190,7 +241,7 @@ func (ch *HTTPCoverHandlers) HandleGetFeedCovers(w http.ResponseWriter, r *http.
 	}
 }
 
-func (ch *HTTPCoverHandlers) HandleGetCoversByBook(w http.ResponseWriter, r *http.Request) {
+func (c *HTTPCoverHandlers) HandleGetCoversByBook(w http.ResponseWriter, r *http.Request) {
 	offset, err := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 64)
 	if err != nil {
 		fmt.Println("ошибка получения offset из query параметра")
@@ -204,10 +255,10 @@ func (ch *HTTPCoverHandlers) HandleGetCoversByBook(w http.ResponseWriter, r *htt
 		return
 	}
 
-	coverID := mux.Vars(r)["cover_id"]
-	coverIDConverted, err := uuid.Parse(coverID)
+	bookIDRaw := mux.Vars(r)["book_id"]
+	bookID, err := uuid.Parse(bookIDRaw)
 
-	covers, err := ch.coverService.GetCoversByBook(ch.ctx, coverIDConverted, int(offset), int(limit))
+	covers, err := c.coverService.GetCoversByBook(c.ctx, bookID, int(offset), int(limit))
 	if err != nil {
 		fmt.Println("ошибка получения списка обложек по книге")
 		tools.SendErrorResponse(w, err, http.StatusInternalServerError)

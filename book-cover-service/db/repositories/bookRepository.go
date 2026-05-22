@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"Altcover/book-cover-service/domains"
+	"book-cover-service/domains"
 	"context"
 	"errors"
 	"fmt"

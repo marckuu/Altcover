@@ -11,7 +11,7 @@ type Cover struct {
 	ImagesKeys  []string // Нужно заменить на работу с minio
 	Status      int      // Должен браться status из файла status
 
-	DesignerID        uuid.UUID
+	UserID            uuid.UUID
 	DesignerNickname  string
 	DesignerAvatarKey string // Заменить на подтягивание из minio
 

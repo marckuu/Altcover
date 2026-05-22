@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"book-cover-service/handlers/tools"
+	"book-cover-service/middleware"
 	"book-cover-service/services"
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -17,21 +19,27 @@ type HTTPFavoritesHandlers struct {
 	ctx              context.Context
 }
 
-func (fh *HTTPFavoritesHandlers) HandleAddCoverToFavorites(w http.ResponseWriter, r *http.Request) {
+func NewHTTPFavoritesHandlers(favoriteService services.FavoritesService, ctx context.Context) HTTPFavoritesHandlers {
+	return HTTPFavoritesHandlers{
+		favoritesService: favoriteService,
+		ctx:              ctx,
+	}
+}
+
+func (f *HTTPFavoritesHandlers) HandleAddCoverToFavorites(w http.ResponseWriter, r *http.Request) {
 	// Получить id юзера
 
-	userID := mux.Vars(r)["user_id"]
-	userIDConverted, err := uuid.Parse(userID)
+	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
-		fmt.Println("ошибка преобразования строки в uuid")
-		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
+		fmt.Printf("Не удалось получить ID пользователя из токена: %s", err)
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	// Получить id обложки
 
-	coverID := mux.Vars(r)["cover_id"]
-	coverIDConverted, err := uuid.Parse(coverID)
+	coverIDRaw := mux.Vars(r)["cover_id"]
+	coverID, err := uuid.Parse(coverIDRaw)
 	if err != nil {
 		fmt.Println("ошибка преобразования строки в uuid")
 		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
@@ -40,25 +48,37 @@ func (fh *HTTPFavoritesHandlers) HandleAddCoverToFavorites(w http.ResponseWriter
 
 	// Добавить запись в таблицу
 
-	if err = fh.favoritesService.AddCoverToFavorites(fh.ctx, userIDConverted, coverIDConverted); err != nil {
+	if err = f.favoritesService.AddCoverToFavorites(f.ctx, userID, coverID); err != nil {
 		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 }
 
-func (fh *HTTPFavoritesHandlers) HandleGetFavoriteCovers(w http.ResponseWriter, r *http.Request) {
+func (f *HTTPFavoritesHandlers) HandleGetMyFavoriteCovers(w http.ResponseWriter, r *http.Request) {
+	offset, err := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 64)
+	if err != nil {
+		fmt.Println("ошибка получения offset из query параметра")
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+	limit, err := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 64)
+	if err != nil {
+		fmt.Println("ошибка получения limit из query параметра")
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
 	// Получить id юзера
 
-	userID := mux.Vars(r)["user_id"]
-	userIDConverted, err := uuid.Parse(userID)
+	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
-		fmt.Println("ошибка преобразования строки в uuid")
-		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
+		fmt.Printf("Не удалось получить ID пользователя из токена: %s", err)
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	// Получить его избранные обложки
-	covers, err := fh.favoritesService.GetFavoriteCovers(fh.ctx, userIDConverted)
+	covers, err := f.favoritesService.GetFavoriteCovers(f.ctx, userID, int(offset), int(limit))
 	if err != nil {
 		fmt.Println("ошибка при получении избранных обложек")
 		tools.SendErrorResponse(w, err, http.StatusInternalServerError)

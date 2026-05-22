@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"auth-service/handlers/tools"
-	"auth-service/repositories"
+	"book-cover-service/db/repositories"
+	"book-cover-service/handlers/tools"
 	"context"
 	"errors"
 	"fmt"
@@ -18,9 +18,9 @@ type AuthMiddleware struct {
 	jwtManager repositories.JWTManager
 }
 
-func NewAuthMiddleware(JWTManager repositories.JWTManager) AuthMiddleware {
+func NewAuthMiddleware(jwtManager repositories.JWTManager) AuthMiddleware {
 	return AuthMiddleware{
-		jwtManager: JWTManager,
+		jwtManager: jwtManager,
 	}
 }
 

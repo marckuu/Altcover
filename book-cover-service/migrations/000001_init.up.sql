@@ -8,7 +8,7 @@ CREATE TABLE cover (
     status status NOT NULL,
     book_id UUID,
     FOREIGN KEY (book_id) REFERENCES book(id),
-    designer_id UUID NOT NULL,
+    user_id UUID NOT NULL,
     designer_nickname UUID NOT NULL,
     designer_avatar_key TEXT NOT NULL
 );
