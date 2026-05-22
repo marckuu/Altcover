@@ -1,11 +1,12 @@
 package repositories
 
 import (
-	"Altcover/auth-service/domains"
+	"auth-service/domains"
 	"context"
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -27,7 +28,7 @@ func (u *UserRepository) AddUser(ctx context.Context, user domains.User) error {
 	return nil
 }
 
-func (u *UserRepository) GetUserByID(ctx context.Context, userID int64) (domains.User, error) {
+func (u *UserRepository) GetUserByID(ctx context.Context, userID uuid.UUID) (domains.User, error) {
 	query := `
 	SELECT id, nickname, role, created_at, password_hash 
 	FROM users
@@ -114,4 +115,23 @@ func (u *UserRepository) DeleteUserByID(ctx context.Context, userID int64) error
 	}
 
 	return nil
+}
+
+func (u *UserRepository) GetUserByNickname(ctx context.Context, nickname string) (domains.User, error) {
+	query := `
+	SELECT id, nickname, role, password_hash, created_at
+	FROM users
+	WHERE nickname = $1;
+`
+	resultRow := u.connection.QueryRow(ctx, query, nickname)
+
+	var user domains.User
+
+	if err := resultRow.Scan(&user.ID, &user.Nickname, &user.Role, &user.PasswordHash, &user.CreatedAt); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domains.User{}, errUserNotFound
+		}
+		return domains.User{}, err
+	}
+	return user, nil
 }

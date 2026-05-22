@@ -99,7 +99,7 @@ func (d *DesignerProfileRepository) UpdateDesignerProfile(ctx context.Context, p
 	return nil
 }
 
-func (d *DesignerProfileRepository) DeleteDesignerProfile(ctx context.Context, profileID int64) error {
+func (d *DesignerProfileRepository) DeleteDesignerProfile(ctx context.Context, profileID uuid.UUID) error {
 	query := `
 	DELETE FROM designer_profile
 	WHERE id = $1;

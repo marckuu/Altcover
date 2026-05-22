@@ -162,7 +162,6 @@ func (ch *HTTPCoverHandlers) HandleAddCover(w http.ResponseWriter, r *http.Reque
 }
 
 func (ch *HTTPCoverHandlers) HandleGetFeedCovers(w http.ResponseWriter, r *http.Request) {
-	// Получить список обложек с наибольшим количеством поставленных лайков за последние три дня
 	offset, err := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 64)
 	if err != nil {
 		fmt.Println("ошибка получения offset из query параметра")
@@ -187,6 +186,36 @@ func (ch *HTTPCoverHandlers) HandleGetFeedCovers(w http.ResponseWriter, r *http.
 
 	if err = json.NewEncoder(w).Encode(covers); err != nil {
 		fmt.Println("не удалось отправить ответ со списком популярных обложек")
+		// Логировать ошибку
+	}
+}
+
+func (ch *HTTPCoverHandlers) HandleGetCoversByBook(w http.ResponseWriter, r *http.Request) {
+	offset, err := strconv.ParseInt(r.URL.Query().Get("offset"), 10, 64)
+	if err != nil {
+		fmt.Println("ошибка получения offset из query параметра")
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+	limit, err := strconv.ParseInt(r.URL.Query().Get("limit"), 10, 64)
+	if err != nil {
+		fmt.Println("ошибка получения limit из query параметра")
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	coverID := mux.Vars(r)["cover_id"]
+	coverIDConverted, err := uuid.Parse(coverID)
+
+	covers, err := ch.coverService.GetCoversByBook(ch.ctx, coverIDConverted, int(offset), int(limit))
+	if err != nil {
+		fmt.Println("ошибка получения списка обложек по книге")
+		tools.SendErrorResponse(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(covers); err != nil {
+		fmt.Println("не удалось отправить ответ со списком обложек по книге")
 		// Логировать ошибку
 	}
 }

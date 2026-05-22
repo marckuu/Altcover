@@ -10,6 +10,6 @@ type User struct {
 	ID           uuid.UUID
 	Nickname     string
 	Role         int // Это константа из roles
-	PasswordHash string
+	PasswordHash []byte
 	CreatedAt    time.Time
 }

@@ -20,7 +20,7 @@ type CoverRepository struct {
 
 func (c *CoverRepository) AddCover(ctx context.Context, cover domains.Cover) error {
 	query := `
-	INSERT INTO cover (title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key)
+	INSERT INTO cover (title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key, book_id)
 	VALUES ($1, $2, $3, $4, $5, $6, $7);
 `
 	_, err := c.connection.Exec(ctx, query,
@@ -30,7 +30,8 @@ func (c *CoverRepository) AddCover(ctx context.Context, cover domains.Cover) err
 		cover.Status,
 		cover.DesignerID,
 		cover.DesignerNickname,
-		cover.DesignerAvatarKey)
+		cover.DesignerAvatarKey,
+		cover.BookID)
 
 	if err != nil {
 		return fmt.Errorf("cover repository -> add: %w", err)
@@ -41,7 +42,7 @@ func (c *CoverRepository) AddCover(ctx context.Context, cover domains.Cover) err
 
 func (c *CoverRepository) GetCoverByID(ctx context.Context, coverID uuid.UUID) (domains.Cover, error) {
 	query := `
-	SELECT id, title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key
+	SELECT id, title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key, book_id
 	FROM cover
 	WHERE id = $1;
 `
@@ -56,7 +57,8 @@ func (c *CoverRepository) GetCoverByID(ctx context.Context, coverID uuid.UUID) (
 		&cover.Status,
 		&cover.DesignerID,
 		&cover.DesignerNickname,
-		&cover.DesignerAvatarKey)
+		&cover.DesignerAvatarKey,
+		&cover.BookID)
 
 	if err != nil {
 		return domains.Cover{}, fmt.Errorf("cover repository -> get by id: %w", err)
@@ -67,7 +69,7 @@ func (c *CoverRepository) GetCoverByID(ctx context.Context, coverID uuid.UUID) (
 
 func (c *CoverRepository) GetCovers(ctx context.Context, offset int, limit int) ([]domains.Cover, error) {
 	query := `
-	SELECT id, title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key
+	SELECT id, title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key, book_id
 	FROM cover
 	OFFSET $1
 	LIMIT $2;
@@ -91,7 +93,8 @@ func (c *CoverRepository) GetCovers(ctx context.Context, offset int, limit int) 
 			&cover.Status,
 			&cover.DesignerID,
 			&cover.DesignerNickname,
-			&cover.DesignerAvatarKey)
+			&cover.DesignerAvatarKey,
+			&cover.BookID)
 
 		if err != nil {
 			return []domains.Cover{}, fmt.Errorf("cover repository -> get all -> parsing: %w", err)
@@ -115,8 +118,9 @@ func (c *CoverRepository) UpdateCover(ctx context.Context, cover domains.Cover) 
 	    images_keys = $3, 
 	    status = $4, 
 	    designer_nickname = $5, 
-	    designer_avatar_key = $6
-	WHERE id = $7;
+	    designer_avatar_key = $6,
+	    book_id = $7
+	WHERE id = $8;
 `
 	tag, err := c.connection.Exec(ctx, query,
 		cover.Title,
@@ -125,6 +129,7 @@ func (c *CoverRepository) UpdateCover(ctx context.Context, cover domains.Cover) 
 		cover.Status,
 		cover.DesignerNickname,
 		cover.DesignerAvatarKey,
+		cover.BookID,
 		cover.ID)
 
 	if err != nil {
@@ -159,7 +164,7 @@ func (c *CoverRepository) DeleteCover(ctx context.Context, coverID uuid.UUID) er
 
 func (c *CoverRepository) GetCoversByDesignerID(ctx context.Context, offset int, limit int, designerID uuid.UUID) ([]domains.Cover, error) {
 	query := `
-	SELECT id, title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key
+	SELECT id, title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key, book_id
 	FROM cover
 	WHERE designer_id = $1
 	OFFSET $2
@@ -184,7 +189,8 @@ func (c *CoverRepository) GetCoversByDesignerID(ctx context.Context, offset int,
 			&cover.Status,
 			&cover.DesignerID,
 			&cover.DesignerNickname,
-			&cover.DesignerAvatarKey)
+			&cover.DesignerAvatarKey,
+			&cover.BookID)
 
 		if err != nil {
 			return []domains.Cover{}, fmt.Errorf("cover repository -> get all by user id -> parsing: %w", err)
@@ -202,7 +208,7 @@ func (c *CoverRepository) GetCoversByDesignerID(ctx context.Context, offset int,
 
 func (c *CoverRepository) GetCoversByUserID(ctx context.Context, offset int, limit int, userID uuid.UUID) ([]domains.Cover, error) {
 	query := `
-	SELECT id, title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key
+	SELECT id, title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key, book_id
 	FROM cover
 	WHERE designer_id = $1
 	OFFSET $2
@@ -227,7 +233,8 @@ func (c *CoverRepository) GetCoversByUserID(ctx context.Context, offset int, lim
 			&cover.Status,
 			&cover.DesignerID,
 			&cover.DesignerNickname,
-			&cover.DesignerAvatarKey)
+			&cover.DesignerAvatarKey,
+			&cover.BookID)
 
 		if err != nil {
 			return []domains.Cover{}, fmt.Errorf("cover repository -> get all by user id -> parsing: %w", err)
@@ -245,7 +252,7 @@ func (c *CoverRepository) GetCoversByUserID(ctx context.Context, offset int, lim
 
 func (c *CoverRepository) GetCoversByIDs(ctx context.Context, coversIDs []uuid.UUID) ([]domains.Cover, error) {
 	query := `
-	SELECT id, title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key
+	SELECT id, title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key, book_id
 	FROM cover
 	WHERE id = ANY($1);
 `
@@ -267,7 +274,8 @@ func (c *CoverRepository) GetCoversByIDs(ctx context.Context, coversIDs []uuid.U
 			&cover.Status,
 			&cover.DesignerID,
 			&cover.DesignerNickname,
-			&cover.DesignerAvatarKey)
+			&cover.DesignerAvatarKey,
+			&cover.BookID)
 
 		if err != nil {
 			return []domains.Cover{}, fmt.Errorf("cover repository -> get covers by ids -> parsing: %w", err)
@@ -285,7 +293,7 @@ func (c *CoverRepository) GetCoversByIDs(ctx context.Context, coversIDs []uuid.U
 
 func (c *CoverRepository) GetMostLikedCoversForNDays(ctx context.Context, daysNumber int, offset int, limit int) ([]domains.Cover, error) {
 	query := `
-	SELECT (id, title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key), COUNT(cover_like.user_id) AS likes_count
+	SELECT (id, title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key, book_id), COUNT(cover_like.user_id) AS likes_count
 	FROM cover c
 	INNER JOIN cover_like l
 	ON c.id=l.user_id
@@ -314,7 +322,8 @@ func (c *CoverRepository) GetMostLikedCoversForNDays(ctx context.Context, daysNu
 			&cover.Status,
 			&cover.DesignerID,
 			&cover.DesignerNickname,
-			&cover.DesignerAvatarKey)
+			&cover.DesignerAvatarKey,
+			&cover.BookID)
 
 		if err != nil {
 			return []domains.Cover{}, fmt.Errorf("cover repository -> get most liked -> parsing: %w", err)
@@ -325,6 +334,50 @@ func (c *CoverRepository) GetMostLikedCoversForNDays(ctx context.Context, daysNu
 
 	if resultRow.Err() != nil {
 		return []domains.Cover{}, fmt.Errorf("cover repository -> get most liked -> query result: %w", err)
+	}
+
+	return covers, nil
+}
+
+func (c *CoverRepository) GetCoversByBook(ctx context.Context, bookID uuid.UUID, offset int, limit int) ([]domains.Cover, error) {
+	query := `
+	SELECT (id, title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key, book_id)
+	FROM cover
+	WHERE book_id = $1
+	OFFSET $2
+	LIMIT $3;
+`
+	resultRow, err := c.connection.Query(ctx, query, bookID, offset, limit)
+	if err != nil {
+		return []domains.Cover{}, fmt.Errorf("cover repository -> get most liked -> query: %w", err)
+	}
+
+	defer resultRow.Close()
+
+	var covers []domains.Cover
+
+	for resultRow.Next() {
+		var cover domains.Cover
+
+		err = resultRow.Scan(&cover.ID,
+			&cover.Title,
+			&cover.Description,
+			&cover.ImagesKeys,
+			&cover.Status,
+			&cover.DesignerID,
+			&cover.DesignerNickname,
+			&cover.DesignerAvatarKey,
+			&cover.BookID)
+
+		if err != nil {
+			return []domains.Cover{}, fmt.Errorf("cover repository -> get by book -> parsing: %w", err)
+		}
+
+		covers = append(covers, cover)
+	}
+
+	if resultRow.Err() != nil {
+		return []domains.Cover{}, fmt.Errorf("cover repository -> get by book -> query result: %w", err)
 	}
 
 	return covers, nil

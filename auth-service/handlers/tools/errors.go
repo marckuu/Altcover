@@ -1,7 +1,7 @@
 package tools
 
 import (
-	"Altcover/auth-service/dto"
+	"auth-service/dto"
 	"encoding/json"
 	"fmt"
 	"net/http"

@@ -16,3 +16,8 @@ CREATE TABLE designer_profile (
     user_id UUID NOT NULL UNIQUE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE TABLE refresh_token (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    token_hash TEXT UNIQUE NOT NULL
+)

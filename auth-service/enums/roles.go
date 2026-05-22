@@ -1,7 +1,7 @@
 package enums
 
 const (
-	admin = iota
-	user
-	designer
+	Admin = iota
+	User
+	Designer
 )
