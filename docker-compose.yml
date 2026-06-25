@@ -1,0 +1,178 @@
+services:
+  postgres-auth:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: altcover_auth
+    volumes:
+      - postgres_data_auth:/var/lib/postgresql/data
+    networks:
+      - postgres-auth
+    restart: always
+
+  postgres-book-cover:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: altcover_book-cover
+    volumes:
+      - postgres_data_book_cover:/var/lib/postgresql/data
+    networks:
+      - postgres-book-cover
+    restart: always
+
+  auth-service:
+    build:
+      context: ./auth-service
+    depends_on:
+      - postgres-auth
+    ports:
+      - "9090:9011"
+    environment:
+      DB_CONN_PATH: ${DB_CONN_PATH_AUTH}
+      KAFKA_BROKER1_URL: ${KAFKA_BROKER1_URL}
+      KAFKA_BROKER2_URL: ${KAFKA_BROKER2_URL}
+      KAFKA_BROKER3_URL: ${KAFKA_BROKER3_URL}
+      PROFILES_TOPIC_NAME: ${PROFILES_TOPIC_NAME}
+    networks:
+      - external-net
+      - kafka-net
+      - postgres-auth
+    restart: always
+
+  book-cover-service:
+    build:
+      context: ./book-cover-service
+    depends_on:
+      - postgres-book-cover
+    ports:
+      - "9091:9011"
+    environment:
+      DB_CONN_PATH: ${DB_CONN_PATH_BOOK_COVER}
+      KAFKA_BROKER1_URL: ${KAFKA_BROKER1_URL}
+      KAFKA_BROKER2_URL: ${KAFKA_BROKER2_URL}
+      KAFKA_BROKER3_URL: ${KAFKA_BROKER3_URL}
+      PROFILES_TOPIC_NAME: ${PROFILES_TOPIC_NAME}
+      CONSUMER_GROUP_ID: ${CONSUMER_GROUP_ID}
+    networks:
+      - external-net
+      - kafka-net
+      - postgres-book-cover
+    restart: always
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.7.1
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - kafka-net
+    restart: always
+
+  kafka-broker1:
+    image: confluentinc/cp-kafka:7.7.1
+    hostname: kafka-broker1
+    container_name: kafka-broker1
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29091,EXTERNAL://0.0.0.0:9091
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-broker1:29091,EXTERNAL://kafka-broker1:9091
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+    networks:
+      - kafka-net
+    restart: always
+
+  kafka-broker2:
+    image: confluentinc/cp-kafka:7.7.1
+    hostname: kafka-broker2
+    container_name: kafka-broker2
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-broker2:29092,EXTERNAL://kafka-broker2:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+    networks:
+      - kafka-net
+    restart: always
+
+  kafka-broker3:
+    image: confluentinc/cp-kafka:7.7.1
+    hostname: kafka-broker3
+    container_name: kafka-broker3
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29093,EXTERNAL://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-broker3:29093,EXTERNAL://kafka-broker3:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+    networks:
+      - kafka-net
+    restart: always
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "9020:8081"
+    environment:
+      AUTH_TYPE: DISABLED
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker1:29091,kafka-broker2:29092,kafka-broker3:29093
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    depends_on:
+      - kafka-broker1
+      - kafka-broker2
+      - kafka-broker3
+    networks:
+      - kafka-net
+    restart: on-failure
+
+volumes:
+  postgres_data_book_cover:
+  postgres_data_auth:
+
+networks:
+  kafka-net:
+    driver: bridge
+    internal: true
+  external-net:
+    driver: bridge
+  postgres-auth:
+    driver: bridge
+    internal: true
+  postgres-book-cover:
+    driver: bridge
+    internal: true
+

@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"book-cover-service/domains"
 	"context"
 	"errors"
 	"fmt"
@@ -14,6 +13,12 @@ var errUserNotFound = errors.New("пользователь не найден")
 
 type FavoritesRepository struct {
 	connection *pgx.Conn
+}
+
+func NewFavoritesRepository(conn *pgx.Conn) FavoritesRepository {
+	return FavoritesRepository{
+		connection: conn,
+	}
 }
 
 func (f *FavoritesRepository) AddCoverToFavorites(ctx context.Context, userID uuid.UUID, coverID uuid.UUID) error {

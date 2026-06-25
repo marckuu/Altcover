@@ -1,19 +1,46 @@
 package services
 
 import (
+	"auth-service/db/repositories"
 	"auth-service/domains"
-	"auth-service/repositories"
+	"auth-service/shared"
+	"auth-service/shared/messaging"
 	"context"
+	"encoding/json"
 
 	"github.com/google/uuid"
 )
 
 type DesignerProfileService struct {
 	designerProfileRepository repositories.DesignerProfileRepository
+	producer                  *messaging.Producer
+}
+
+func NewDesignerProfileService(repository repositories.DesignerProfileRepository, producer *messaging.Producer) DesignerProfileService {
+	return DesignerProfileService{
+		designerProfileRepository: repository,
+		producer:                  producer,
+	}
 }
 
 func (d *DesignerProfileService) CreateDesignerProfile(ctx context.Context, designerProfile domains.DesignerProfile) error {
 	if err := d.designerProfileRepository.AddDesignerProfile(ctx, designerProfile); err != nil {
+		return err
+	}
+
+	payload, err := json.Marshal(designerProfile)
+	if err != nil {
+		return err
+	}
+
+	event := shared.NewKafkaEvent(shared.DesignerProfileCreated, payload)
+
+	message, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+
+	if err = d.producer.Produce(message); err != nil {
 		return err
 	}
 
@@ -26,6 +53,22 @@ func (d *DesignerProfileService) UpdateDesignerProfile(ctx context.Context, desi
 
 	// 2. repo.Update()
 	if err := d.designerProfileRepository.UpdateDesignerProfile(ctx, designerProfile); err != nil {
+		return err
+	}
+
+	payload, err := json.Marshal(designerProfile)
+	if err != nil {
+		return err
+	}
+
+	event := shared.NewKafkaEvent(shared.DesignerProfileUpdated, payload)
+
+	message, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+
+	if err = d.producer.Produce(message); err != nil {
 		return err
 	}
 
@@ -45,5 +88,24 @@ func (d *DesignerProfileService) DeleteDesignerProfile(ctx context.Context, prof
 	if err := d.designerProfileRepository.DeleteDesignerProfile(ctx, profileID); err != nil {
 		return err
 	}
+
+	payload, err := json.Marshal(domains.DesignerProfile{
+		ID: profileID,
+	})
+	if err != nil {
+		return err
+	}
+
+	event := shared.NewKafkaEvent(shared.DesignerProfileDeleted, payload)
+
+	message, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+
+	if err = d.producer.Produce(message); err != nil {
+		return err
+	}
+
 	return nil
 }

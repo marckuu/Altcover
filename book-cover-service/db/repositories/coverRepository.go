@@ -16,11 +16,17 @@ type CoverRepository struct {
 	connection *pgx.Conn
 }
 
+func NewCoverRepository(conn *pgx.Conn) CoverRepository {
+	return CoverRepository{
+		connection: conn,
+	}
+}
+
 // CRUD операции
 
 func (c *CoverRepository) AddCover(ctx context.Context, cover domains.Cover) error {
 	query := `
-	INSERT INTO cover (title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key, book_id)
+	INSERT INTO cover (title, description, images_keys, status, user_id, designer_nickname, designer_avatar_key, book_id)
 	VALUES ($1, $2, $3, $4, $5, $6, $7);
 `
 	_, err := c.connection.Exec(ctx, query,
@@ -28,7 +34,7 @@ func (c *CoverRepository) AddCover(ctx context.Context, cover domains.Cover) err
 		cover.Description,
 		cover.ImagesKeys,
 		cover.Status,
-		cover.DesignerID,
+		cover.UserID,
 		cover.DesignerNickname,
 		cover.DesignerAvatarKey,
 		cover.BookID)
@@ -42,7 +48,7 @@ func (c *CoverRepository) AddCover(ctx context.Context, cover domains.Cover) err
 
 func (c *CoverRepository) GetCoverByID(ctx context.Context, coverID uuid.UUID) (domains.Cover, error) {
 	query := `
-	SELECT id, title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key, book_id
+	SELECT id, title, description, images_keys, status, user_id, designer_nickname, designer_avatar_key, book_id
 	FROM cover
 	WHERE id = $1;
 `
@@ -55,7 +61,7 @@ func (c *CoverRepository) GetCoverByID(ctx context.Context, coverID uuid.UUID) (
 		&cover.Description,
 		&cover.ImagesKeys,
 		&cover.Status,
-		&cover.DesignerID,
+		&cover.UserID,
 		&cover.DesignerNickname,
 		&cover.DesignerAvatarKey,
 		&cover.BookID)
@@ -69,7 +75,7 @@ func (c *CoverRepository) GetCoverByID(ctx context.Context, coverID uuid.UUID) (
 
 func (c *CoverRepository) GetCovers(ctx context.Context, offset int, limit int) ([]domains.Cover, error) {
 	query := `
-	SELECT id, title, description, images_keys, status, designer_id, designer_nickname, designer_avatar_key, book_id
+	SELECT id, title, description, images_keys, status, user_id, designer_nickname, designer_avatar_key, book_id
 	FROM cover
 	OFFSET $1
 	LIMIT $2;
@@ -91,7 +97,7 @@ func (c *CoverRepository) GetCovers(ctx context.Context, offset int, limit int) 
 			&cover.Description,
 			&cover.ImagesKeys,
 			&cover.Status,
-			&cover.DesignerID,
+			&cover.UserID,
 			&cover.DesignerNickname,
 			&cover.DesignerAvatarKey,
 			&cover.BookID)

@@ -12,6 +12,12 @@ type CoverService struct {
 	coverRepository repositories.CoverRepository
 }
 
+func NewCoverService(repository repositories.CoverRepository) CoverService {
+	return CoverService{
+		coverRepository: repository,
+	}
+}
+
 func (c *CoverService) GetCoversByUserID(ctx context.Context, offset int, limit int, userID uuid.UUID) ([]domains.Cover, error) {
 	covers, err := c.coverRepository.GetCoversByUserID(ctx, offset, limit, userID)
 	if err != nil {

@@ -13,7 +13,13 @@ import (
 var errLikeNotFound = errors.New("лайк не найден")
 
 type CoverLikeRepository struct {
-	connection pgx.Conn
+	connection *pgx.Conn
+}
+
+func NewCoverLikeRepository(conn *pgx.Conn) CoverLikeRepository {
+	return CoverLikeRepository{
+		connection: conn,
+	}
 }
 
 func (lr *CoverLikeRepository) AddLike(ctx context.Context, userID uuid.UUID, coverID uuid.UUID) error {

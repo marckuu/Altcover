@@ -16,6 +16,12 @@ type DesignerProfileRepository struct {
 	connection *pgx.Conn
 }
 
+func NewDesignerProfileRepository(conn *pgx.Conn) DesignerProfileRepository {
+	return DesignerProfileRepository{
+		connection: conn,
+	}
+}
+
 func (d *DesignerProfileRepository) AddDesignerProfile(ctx context.Context, profile domains.DesignerProfile) error {
 	query := `
 	INSERT INTO designer_profile (user_id, avatar_key, nickname)

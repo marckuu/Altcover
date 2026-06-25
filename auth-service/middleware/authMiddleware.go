@@ -1,8 +1,8 @@
 package middleware
 
 import (
+	"auth-service/db/repositories"
 	"auth-service/handlers/tools"
-	"auth-service/repositories"
 	"context"
 	"errors"
 	"fmt"

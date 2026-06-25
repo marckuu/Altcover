@@ -17,6 +17,7 @@ import (
 )
 
 var mostLikedInterval = 3
+var getProfilePath = "/designer_profile/me"
 
 type HTTPCoverHandlers struct {
 	coverService services.CoverService
@@ -197,8 +198,9 @@ func (c *HTTPCoverHandlers) HandleAddCover(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Сделать запрос на получение профиля этого пользователя и заполнить их
-	_ = userID
+	cover.UserID = userID
+
+	// Добавить получение ника и аватарки дизайнера
 
 	// Провалидировать обложку
 

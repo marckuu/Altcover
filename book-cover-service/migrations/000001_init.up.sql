@@ -40,3 +40,9 @@ CREATE TABLE cover_like (
     cover_id UUID NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+
+CREATE TABLE designer_profile_snapshot (
+    id UUID PRIMARY KEY,
+    avatar_key TEXT,
+    nickname VARCHAR(60)
+);

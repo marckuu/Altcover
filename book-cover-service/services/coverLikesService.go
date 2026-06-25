@@ -14,6 +14,12 @@ type CoverLikeService struct {
 	coverLikeRepository repositories.CoverLikeRepository
 }
 
+func NewCoverLikeService(repository repositories.CoverLikeRepository) CoverLikeService {
+	return CoverLikeService{
+		coverLikeRepository: repository,
+	}
+}
+
 func (ls *CoverLikeService) SetLike(ctx context.Context, userID uuid.UUID, coverID uuid.UUID) error {
 	// Проверить есть ли уже лайк
 	_, err := ls.coverLikeRepository.GetLike(ctx, userID, coverID)

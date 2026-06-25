@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"auth-service/db/repositories"
 	"auth-service/domains"
 	"auth-service/dto"
 	"auth-service/enums"
 	"auth-service/handlers/tools"
-	"auth-service/repositories"
 	"auth-service/services"
 	"context"
 	"encoding/json"

@@ -1,8 +1,9 @@
 package services
 
 import (
+	repositories2 "auth-service/db/repositories"
 	"auth-service/domains"
-	"auth-service/repositories"
+	"auth-service/shared/messaging"
 	"context"
 
 	"github.com/google/uuid"
@@ -10,7 +11,15 @@ import (
 )
 
 type UserService struct {
-	userRepository repositories.UserRepository
+	userRepository repositories2.UserRepository
+	producer       *messaging.Producer
+}
+
+func NewUserService(repository repositories2.UserRepository, producer *messaging.Producer) UserService {
+	return UserService{
+		userRepository: repository,
+		producer:       producer,
+	}
 }
 
 type UserRepository interface {
@@ -43,7 +52,7 @@ func (us *UserService) DeleteUser(userID pgtype.UUID) {
 	// 2. repo.Update()
 }
 
-func (u *UserService) GetUserIDFromTokenClaims(claims *repositories.CustomClaims) (uuid.UUID, error) {
+func (u *UserService) GetUserIDFromTokenClaims(claims *repositories2.CustomClaims) (uuid.UUID, error) {
 	userID := claims.Subject
 	userIDConverted, err := uuid.Parse(userID)
 	if err != nil {

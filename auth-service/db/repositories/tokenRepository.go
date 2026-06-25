@@ -15,6 +15,12 @@ type TokenRepository struct {
 	connection *pgx.Conn
 }
 
+func NewTokenRepository(conn *pgx.Conn) TokenRepository {
+	return TokenRepository{
+		connection: conn,
+	}
+}
+
 func (t *TokenRepository) AddRefreshToken(ctx context.Context, tokenHash []byte) error {
 	query := `
 	INSERT INTO refresh_token (token_hash)

@@ -1,7 +1,8 @@
 package services
 
 import (
-	"auth-service/repositories"
+	"auth-service/db/repositories"
+	"auth-service/shared/messaging"
 	"context"
 	"errors"
 	"fmt"
@@ -11,6 +12,14 @@ import (
 
 type TokenService struct {
 	tokenRepository repositories.TokenRepository
+	producer        *messaging.Producer
+}
+
+func NewTokenService(tokenRepository repositories.TokenRepository, producer *messaging.Producer) TokenService {
+	return TokenService{
+		tokenRepository: tokenRepository,
+		producer:        producer,
+	}
 }
 
 func (t *TokenService) AddRefreshToken(ctx context.Context, token string) error {

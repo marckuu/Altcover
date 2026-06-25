@@ -16,6 +16,10 @@ var signingMethod = jwt.SigningMethodHS256
 type JWTManager struct {
 }
 
+func NewJWTManager() JWTManager {
+	return JWTManager{}
+}
+
 type TokenPair struct {
 	AccessToken  string
 	RefreshToken string

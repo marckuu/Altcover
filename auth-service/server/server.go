@@ -1,9 +1,9 @@
 package server
 
 import (
+	"auth-service/db/repositories"
 	"auth-service/handlers"
 	"auth-service/middleware"
-	"auth-service/repositories"
 	"auth-service/services"
 	"context"
 	"net/http"

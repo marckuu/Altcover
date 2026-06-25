@@ -2,12 +2,13 @@ package db
 
 import (
 	"context"
+	"os"
 
 	"github.com/jackc/pgx/v5"
 )
 
 func CreateConnection(ctx context.Context) (*pgx.Conn, error) {
-	conn, err := pgx.Connect(ctx, "postgres://postgres:12345@localhost:5432/postgres")
+	conn, err := pgx.Connect(ctx, os.Getenv("DB_CONN_PATH"))
 	if err != nil {
 		return nil, err
 	}

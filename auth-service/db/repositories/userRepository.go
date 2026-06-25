@@ -16,6 +16,12 @@ type UserRepository struct {
 	connection *pgx.Conn
 }
 
+func NewUserRepository(conn *pgx.Conn) UserRepository {
+	return UserRepository{
+		connection: conn,
+	}
+}
+
 func (u *UserRepository) AddUser(ctx context.Context, user domains.User) error {
 	query := `
 	INSERT INTO users (nickname, role, password_hash)
