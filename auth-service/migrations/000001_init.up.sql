@@ -1,9 +1,7 @@
-CREATE TYPE user_role AS ENUM ('user', 'designer', 'admin');
-
 CREATE TABLE users (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     nickname VARCHAR(20) NOT NULL UNIQUE,
-    role user_role NOT NULL,
+    role SMALLINT NOT NULL CHECK (role in (0, 1, 2)),
     password_hash TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 

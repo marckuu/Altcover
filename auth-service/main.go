@@ -1,6 +1,7 @@
 package main
 
 import (
+	"auth-service/db"
 	repositories2 "auth-service/db/repositories"
 	"auth-service/server"
 	"auth-service/services"
@@ -8,8 +9,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-
-	"github.com/jackc/pgx/v5"
 )
 
 func main() {
@@ -24,7 +23,11 @@ func main() {
 	}
 
 	ctx := context.Background()
-	var conn *pgx.Conn
+	conn, err := db.CreateConnection(ctx)
+	if err != nil {
+		fmt.Printf("Не удалось создать подключение к бд: %v", err)
+		return
+	}
 
 	serverManager := server.NewServerManager(
 		services.NewTokenService(repositories2.NewTokenRepository(conn), producer),

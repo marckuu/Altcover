@@ -1,6 +1,7 @@
 package main
 
 import (
+	"book-cover-service/db"
 	"book-cover-service/db/repositories"
 	"book-cover-service/server"
 	"book-cover-service/services"
@@ -9,8 +10,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-
-	"github.com/jackc/pgx/v5"
 )
 
 func main() {
@@ -20,7 +19,11 @@ func main() {
 	consumerGroupID := os.Getenv("CONSUMER_GROUP_ID")
 
 	ctx := context.Background()
-	var conn *pgx.Conn
+	conn, err := db.CreateConnection(ctx)
+	if err != nil {
+		fmt.Printf("Не удалось создать подключение к бд: %v", err)
+		return
+	}
 
 	coverRepository := repositories.NewCoverRepository(conn)
 	coverLikeRepository := repositories.NewCoverLikeRepository(conn)

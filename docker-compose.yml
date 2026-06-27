@@ -10,18 +10,42 @@ services:
     networks:
       - postgres-auth
     restart: always
+    container_name: postgres-auth
 
   postgres-book-cover:
     image: postgres:17
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: altcover_book-cover
+      POSTGRES_DB: altcover_book_cover
     volumes:
       - postgres_data_book_cover:/var/lib/postgresql/data
     networks:
       - postgres-book-cover
     restart: always
+    container_name: postgres-book-cover
+
+  migrate-auth:
+    image: migrate/migrate
+    volumes:
+      - ./auth-service/migrations:/migrations
+    depends_on:
+      - postgres-auth
+    networks:
+      - postgres-auth
+    profiles:
+      - tools
+
+  migrate-book-cover:
+    image: migrate/migrate
+    volumes:
+      - ./book-cover-service/migrations:/migrations
+    depends_on:
+      - postgres-book-cover
+    networks:
+      - postgres-book-cover
+    profiles:
+      - tools
 
   auth-service:
     build:

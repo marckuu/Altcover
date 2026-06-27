@@ -36,14 +36,14 @@ func (s *ServerManager) StartServer() {
 		Path("/auth/register").
 		Methods("POST").
 		HandlerFunc(
-			s.middleware.Auth(http.HandlerFunc(s.authHandlers.HandleRegister)),
+			http.HandlerFunc(s.authHandlers.HandleRegister),
 		)
 
 	router.
 		Path("/auth/login").
 		Methods("POST").
 		HandlerFunc(
-			s.middleware.Auth(http.HandlerFunc(s.authHandlers.HandleLogin)),
+			http.HandlerFunc(s.authHandlers.HandleLogin),
 		)
 
 	router.

@@ -25,7 +25,7 @@ func NewUserRepository(conn *pgx.Conn) UserRepository {
 func (u *UserRepository) AddUser(ctx context.Context, user domains.User) error {
 	query := `
 	INSERT INTO users (nickname, role, password_hash)
-	VALUES ($1, $2, $3, $4);
+	VALUES ($1, $2, $3);
 `
 	if _, err := u.connection.Exec(ctx, query, user.Nickname, user.Role, user.PasswordHash); err != nil {
 		return fmt.Errorf("user repo -> add: %w", err)

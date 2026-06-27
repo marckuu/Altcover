@@ -75,6 +75,7 @@ func (a *HTTPAuthHandlers) HandleRegister(w http.ResponseWriter, r *http.Request
 	}
 
 	// Отправить ответ об успешной регистраци
+	w.WriteHeader(http.StatusOK)
 }
 
 func (a *HTTPAuthHandlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
@@ -232,4 +233,6 @@ func (a *HTTPAuthHandlers) HandleLogout(w http.ResponseWriter, r *http.Request) 
 		Path:     "auth/refresh",
 		MaxAge:   -1,
 	})
+
+	w.WriteHeader(http.StatusOK)
 }

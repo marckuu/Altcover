@@ -3,8 +3,8 @@ package dto
 import "time"
 
 type ErrorResponse struct {
-	Message string
-	Time    time.Time
+	Message string    `json:"message"`
+	Time    time.Time `json:"time"`
 }
 
 func NewErrorResponse(message string) ErrorResponse {

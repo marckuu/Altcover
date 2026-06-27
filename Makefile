@@ -8,13 +8,13 @@ start-system:
 	docker-compose up
 
 migrate-up-auth:
-	migrate -path "/auth-service/migrations" -database ${DB_CONN_PATH_AUTH} up
+	docker-compose run --rm migrate-auth -path /migrations -database ${DB_CONN_PATH_AUTH} up
 
 migrate-down-auth:
-	migrate -path "/auth-service/migrations" -database ${DB_CONN_PATH_AUTH} down
+	docker-compose run --rm migrate-auth -path /migrations -database ${DB_CONN_PATH_AUTH} down
 
 migrate-up-book-cover:
-	migrate -path "/book-cover-service/migrations" -database ${DB_CONN_PATH_BOOK_COVER} up
+	docker-compose run --rm migrate-book-cover -path /migrations -database ${DB_CONN_PATH_BOOK_COVER} up
 
 migrate-down-book-cover:
-	migrate -path "/book-cover-service/migrations" -database ${DB_CONN_PATH_BOOK_COVER} down
+	docker-compose run --rm migrate-book-cover -path /migrations -database ${DB_CONN_PATH_BOOK_COVER} down

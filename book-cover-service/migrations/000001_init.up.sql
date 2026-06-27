@@ -1,22 +1,20 @@
-CREATE TYPE status AS ENUM ('uploaded', 'onModeration', 'hidden');
+CREATE TABLE book (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    title VARCHAR(300) NOT NULL,
+    description VARCHAR(300)
+);
 
 CREATE TABLE cover (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
     description VARCHAR(200),
     images_keys TEXT,
-    status status NOT NULL,
+    status SMALLINT NOT NULL CHECK (status in (0, 1, 2)),
     book_id UUID,
     FOREIGN KEY (book_id) REFERENCES book(id),
     user_id UUID NOT NULL,
     designer_nickname UUID NOT NULL,
     designer_avatar_key TEXT NOT NULL
-);
-
-CREATE TABLE book (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    title VARCHAR(300) NOT NULL,
-    description VARCHAR(300)
 );
 
 CREATE TABLE comment (
