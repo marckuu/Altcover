@@ -36,7 +36,7 @@ func (t *TokenRepository) AddRefreshToken(ctx context.Context, tokenHash []byte)
 
 func (t *TokenRepository) GetRefreshTokenByHash(ctx context.Context, tokenHash []byte) (domains.Token, error) {
 	query := `
-	SELECT (id, token_hash)
+	SELECT id, token_hash
 	FROM refresh_token
 	WHERE token_hash = $1;
 `

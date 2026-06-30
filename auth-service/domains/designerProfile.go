@@ -5,9 +5,9 @@ import (
 )
 
 type DesignerProfile struct {
-	ID        uuid.UUID
-	Nickname  string
-	AvatarKey string // Нужно будет настроить работу с minio
+	ID        uuid.UUID `json:"id"`
+	Nickname  string    `json:"nickname"`
+	AvatarKey string    `json:"avatarKey"` // Нужно будет настроить работу с minio
 
-	UserID uuid.UUID
+	UserID uuid.UUID `json:"userID"`
 }

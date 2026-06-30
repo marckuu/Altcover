@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -48,13 +47,6 @@ func (j *JWTManager) Parse(token string) (*CustomClaims, error) {
 	}
 
 	return claims, nil
-}
-
-func (j *JWTManager) Validate(claims *CustomClaims) error {
-	if claims.ExpiresAt.Compare(time.Now()) == 1 {
-		return errors.New("истёк срок действия токена")
-	}
-	return nil
 }
 
 func (j *JWTManager) IsAccessToken(claims *CustomClaims) bool {

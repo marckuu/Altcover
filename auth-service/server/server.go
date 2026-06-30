@@ -61,10 +61,10 @@ func (s *ServerManager) StartServer() {
 		)
 
 	router.
-		Path("/designer_profiles").
+		Path("/designer_profiles/me").
 		Methods("POST").
 		HandlerFunc(
-			s.middleware.Auth(http.HandlerFunc(s.designerProfileHandlers.HandleCreateDesignerProfile)),
+			s.middleware.Auth(http.HandlerFunc(s.designerProfileHandlers.HandleCreateMyDesignerProfile)),
 		)
 
 	router.

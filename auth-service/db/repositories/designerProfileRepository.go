@@ -25,9 +25,9 @@ func NewDesignerProfileRepository(conn *pgx.Conn) DesignerProfileRepository {
 func (d *DesignerProfileRepository) AddDesignerProfile(ctx context.Context, profile domains.DesignerProfile) error {
 	query := `
 	INSERT INTO designer_profile (user_id, avatar_key, nickname)
-	VALUES ($1, $2, $3, $4);
+	VALUES ($1, $2, $3);
 `
-	if _, err := d.connection.Exec(ctx, query, profile.UserID, profile.AvatarKey); err != nil {
+	if _, err := d.connection.Exec(ctx, query, profile.UserID, profile.AvatarKey, profile.Nickname); err != nil {
 		return fmt.Errorf("designer profile repo -> add: %w", err)
 	}
 
@@ -134,7 +134,7 @@ func (d *DesignerProfileRepository) GetDesignerProfileByUserID(ctx context.Conte
 
 	if err := resultRow.Scan(&designerProfile.ID, &designerProfile.UserID, &designerProfile.AvatarKey, &designerProfile.Nickname); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return domains.DesignerProfile{}, errUserNotFound
+			return domains.DesignerProfile{}, errDesignerProfileNotFound
 		}
 		return domains.DesignerProfile{}, fmt.Errorf("designer profile repo -> get by user id: %w", err)
 	}

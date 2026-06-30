@@ -155,12 +155,6 @@ func (a *HTTPAuthHandlers) HandleRefresh(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if err = a.jwtManager.Validate(claims); err != nil {
-		fmt.Printf("невалидный refresh токен, %v", err)
-		tools.SendErrorResponse(w, err, http.StatusUnauthorized)
-		return
-	}
-
 	// Проверить в бд, что токен не отозван
 	isRevoked, err := a.tokenService.IsTokenRevoked(a.ctx, cookie.Value)
 	if err != nil {

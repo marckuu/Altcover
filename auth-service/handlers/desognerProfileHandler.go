@@ -24,15 +24,31 @@ func NewHTTPDesignerProfileHandlers(designerProfileService services.DesignerProf
 	}
 }
 
-func (d *HTTPDesignerProfileHandlers) HandleCreateDesignerProfile(w http.ResponseWriter, r *http.Request) {
+func (d *HTTPDesignerProfileHandlers) HandleCreateMyDesignerProfile(w http.ResponseWriter, r *http.Request) {
+	userID, err := middleware.GetUserIDFromContext(r.Context())
+	if err != nil {
+		fmt.Printf("Не удалось распознать переданный идентификатор: %s", err)
+		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		return
+	}
+
+	_, err = d.designerProfileService.GetProfileByUserID(d.ctx, userID)
+	if err == nil {
+		fmt.Printf("Профиль дизайнера уже существует: %s", err)
+		tools.SendErrorResponse(w, fmt.Errorf("профиль текущего дизайнера уже существует"), http.StatusInternalServerError)
+		return
+	}
+
 	// Считать новый профиль и тела
 	var designerProfile domains.DesignerProfile
 
-	if err := json.NewDecoder(r.Body).Decode(&designerProfile); err != nil {
+	if err = json.NewDecoder(r.Body).Decode(&designerProfile); err != nil {
 		fmt.Printf("Не удалось распознать тело запроса: %s", err)
 		tools.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
+
+	designerProfile.UserID = userID
 
 	// Провалидировать профиль
 

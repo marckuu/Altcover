@@ -2,7 +2,7 @@ CREATE TABLE users (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     nickname VARCHAR(20) NOT NULL UNIQUE,
     role SMALLINT NOT NULL CHECK (role in (0, 1, 2)),
-    password_hash TEXT NOT NULL,
+    password_hash bytea NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 
 );
@@ -17,5 +17,5 @@ CREATE TABLE designer_profile (
 
 CREATE TABLE refresh_token (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    token_hash TEXT UNIQUE NOT NULL
+    token_hash bytea UNIQUE NOT NULL
 )
