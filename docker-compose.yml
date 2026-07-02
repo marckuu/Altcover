@@ -181,6 +181,7 @@ services:
       - kafka-broker3
     networks:
       - kafka-net
+      - external-net
     restart: on-failure
 
 volumes:

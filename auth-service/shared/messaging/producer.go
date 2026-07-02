@@ -35,12 +35,7 @@ func NewProducer(brokerAddresses []string, topic string) (*Producer, error) {
 func (p *Producer) Produce(message []byte) error {
 	prodMsg := &sarama.ProducerMessage{
 		Topic:     p.topic,
-		Key:       nil,
 		Value:     sarama.ByteEncoder(message),
-		Headers:   nil,
-		Metadata:  nil,
-		Offset:    0,
-		Partition: 0,
 		Timestamp: time.Time{},
 	}
 

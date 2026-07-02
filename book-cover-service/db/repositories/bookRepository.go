@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -13,6 +14,12 @@ var errBookNotFound = errors.New("книга не найдена")
 
 type BookRepository struct {
 	connection *pgx.Conn
+}
+
+func NewBookRepository(conn *pgx.Conn) BookRepository {
+	return BookRepository{
+		connection: conn,
+	}
 }
 
 func (b *BookRepository) AddBook(ctx context.Context, book domains.Book) error {
@@ -95,7 +102,7 @@ func (b *BookRepository) UpdateBook(ctx context.Context, book domains.Book) erro
 	return nil
 }
 
-func (b *BookRepository) DeleteBook(ctx context.Context, bookID int64) error {
+func (b *BookRepository) DeleteBook(ctx context.Context, bookID uuid.UUID) error {
 	query := `
 	DELETE FROM book
 	WHERE id = $1;

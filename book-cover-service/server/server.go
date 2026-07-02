@@ -9,23 +9,30 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
 type ServerManager struct {
 	coverHandlers     handlers.HTTPCoverHandlers
 	coverLikeHandlers handlers.HTTPCoverLikeHandlers
 	favoritesHandlers handlers.HTTPFavoritesHandlers
+	bookHandlers      handlers.HTTPBookHandlers
 	middleware        middleware.AuthMiddleware
 }
 
 func NewServerManager(coverService services.CoverService,
 	coverLikeService services.CoverLikeService,
 	favoritesService services.FavoritesService,
-	JWTManager repositories.JWTManager, ctx context.Context) ServerManager {
+	designerProfileSnapshotService services.DesignerProfileSnapshotService,
+	bookService services.BookService,
+	JWTManager repositories.JWTManager,
+	ctx context.Context,
+	logger *zap.Logger) ServerManager {
 	return ServerManager{
-		coverHandlers:     handlers.NewCoverHandlers(coverService, ctx),
-		coverLikeHandlers: handlers.NewCoverLikeHandlers(coverLikeService, ctx),
-		favoritesHandlers: handlers.NewHTTPFavoritesHandlers(favoritesService, ctx),
+		coverHandlers:     handlers.NewCoverHandlers(coverService, designerProfileSnapshotService, ctx, logger),
+		coverLikeHandlers: handlers.NewCoverLikeHandlers(coverLikeService, ctx, logger),
+		favoritesHandlers: handlers.NewHTTPFavoritesHandlers(favoritesService, ctx, logger),
+		bookHandlers:      handlers.NewHTTPBookHandlers(bookService, ctx, logger),
 		middleware:        middleware.NewAuthMiddleware(JWTManager),
 	}
 }
@@ -34,7 +41,28 @@ func (s *ServerManager) StartServer() {
 	router := mux.NewRouter()
 
 	router.
-		Path("designer/me/covers").
+		Path("/books").
+		Methods("POST").
+		HandlerFunc(
+			s.middleware.Auth(http.HandlerFunc(s.bookHandlers.HandleAddBook)),
+		)
+
+	router.
+		Path("/books").
+		Methods("PATCH").
+		HandlerFunc(
+			s.middleware.Auth(http.HandlerFunc(s.bookHandlers.HandleUpdateBook)),
+		)
+
+	router.
+		Path("/books").
+		Methods("DELETE").
+		HandlerFunc(
+			s.middleware.Auth(http.HandlerFunc(s.bookHandlers.HandleDeleteBook)),
+		)
+
+	router.
+		Path("/designer/me/covers").
 		Methods("GET").
 		Queries("offset", "{offset}", "limit", "{limit}").
 		HandlerFunc(
@@ -42,7 +70,7 @@ func (s *ServerManager) StartServer() {
 		)
 
 	router.
-		Path("designers/{user_id}/covers").
+		Path("/designers/{user_id}/covers").
 		Methods("GET").
 		Queries("offset", "{offset}", "limit", "{limit}").
 		HandlerFunc(
@@ -65,17 +93,21 @@ func (s *ServerManager) StartServer() {
 		Methods("GET").
 		HandlerFunc(s.coverHandlers.HandleGetCoverByID)
 
-	// Дописать внутри запрос на получение данных профиля
-	router.Path("/covers").Methods("POST").HandlerFunc(s.middleware.Auth(http.HandlerFunc(s.coverHandlers.HandleAddCover)))
+	router.
+		Path("/covers").
+		Methods("POST").
+		HandlerFunc(
+			s.middleware.Auth(http.HandlerFunc(s.coverHandlers.HandleAddCover)),
+		)
 
 	router.
-		Path("feeds/covers").
+		Path("/feeds/covers").
 		Methods("GET").
 		Queries("offset", "{offset}", "limit", "{limit}").
 		HandlerFunc(s.coverHandlers.HandleGetFeedCovers)
 
 	router.
-		Path("books/{book_id}/covers").
+		Path("/books/{book_id}/covers").
 		Methods("GET").
 		Queries("offset", "{offset}", "limit", "{limit}").
 		HandlerFunc(s.coverHandlers.HandleGetCoversByBook)

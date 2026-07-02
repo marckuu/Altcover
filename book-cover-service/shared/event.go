@@ -9,6 +9,6 @@ const (
 )
 
 type KafkaEvent struct {
-	eventType int
-	payload   json.RawMessage
+	EventType int
+	Payload   json.RawMessage
 }

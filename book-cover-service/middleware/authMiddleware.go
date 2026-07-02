@@ -18,14 +18,14 @@ type AuthMiddleware struct {
 	jwtManager repositories.JWTManager
 }
 
-func NewAuthMiddleware(jwtManager repositories.JWTManager) AuthMiddleware {
+func NewAuthMiddleware(JWTManager repositories.JWTManager) AuthMiddleware {
 	return AuthMiddleware{
-		jwtManager: jwtManager,
+		jwtManager: JWTManager,
 	}
 }
 
 func GetUserIDFromContext(ctx context.Context) (uuid.UUID, error) {
-	claims := ctx.Value("claims").(repositories.CustomClaims)
+	claims := ctx.Value("claims").(*repositories.CustomClaims)
 	userID, err := uuid.Parse(claims.Subject)
 	if err != nil {
 		return uuid.UUID{}, err
@@ -46,12 +46,6 @@ func (a *AuthMiddleware) ProcessToken(header string) (*repositories.CustomClaims
 	if err != nil {
 		fmt.Println("ошибка парсинга access токена")
 		return nil, err
-	}
-
-	// Валидация токена
-	if err = a.jwtManager.Validate(claims); err != nil {
-		fmt.Println("у переданного токена истёк срок жизни")
-		return nil, errors.New("передан токен с истёкшим сроком действия")
 	}
 
 	// Проверка что это именно access токен

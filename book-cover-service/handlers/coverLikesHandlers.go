@@ -11,47 +11,47 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
 type HTTPCoverLikeHandlers struct {
 	coverLikeService services.CoverLikeService
 	ctx              context.Context
+	logger           *zap.Logger
 }
 
-func NewCoverLikeHandlers(coverLikeService services.CoverLikeService, ctx context.Context) HTTPCoverLikeHandlers {
+func NewCoverLikeHandlers(coverLikeService services.CoverLikeService, ctx context.Context, logger *zap.Logger) HTTPCoverLikeHandlers {
 	return HTTPCoverLikeHandlers{
 		coverLikeService: coverLikeService,
 		ctx:              ctx,
+		logger:           logger,
 	}
 }
 
-func (lh *HTTPCoverLikeHandlers) HandleSetLike(w http.ResponseWriter, r *http.Request) {
-	// Получить id пользователя и обложки
-
+func (l *HTTPCoverLikeHandlers) HandleSetLike(w http.ResponseWriter, r *http.Request) {
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
-		fmt.Printf("Не удалось получить ID пользователя из токена: %s", err)
+		l.logger.Error(fmt.Errorf("не удалось получить ID пользователя из токена: %w", err).Error())
 		tools.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	coverIDRaw, ok := mux.Vars(r)["cover_id"]
 	if !ok {
-		fmt.Printf("не удалось получить ID обложки из url: %s", err)
+		l.logger.Error(fmt.Errorf("не удалось получить ID обложки из url: %w", err).Error())
 		tools.SendErrorResponse(w, errors.New("не удалось получить ID обложки из url"), http.StatusBadRequest)
 		return
 	}
 
 	coverID, err := uuid.Parse(coverIDRaw)
 	if err != nil {
-		fmt.Printf("не удалось преобразовать id обложки uuid: %s", err)
+		l.logger.Error(fmt.Errorf("не удалось преобразовать id обложки uuid: %w", err).Error())
 		tools.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	// Создать сущность лайка
-	if err = lh.coverLikeService.SetLike(lh.ctx, userID, coverID); err != nil {
-		fmt.Println("ошибка при записи данных лайка в таблицу")
+	if err = l.coverLikeService.SetLike(l.ctx, userID, coverID); err != nil {
+		l.logger.Error(fmt.Errorf("ошибка при записи данных лайка в таблицу: %w", err).Error())
 		tools.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}

@@ -27,7 +27,7 @@ func NewCoverRepository(conn *pgx.Conn) CoverRepository {
 func (c *CoverRepository) AddCover(ctx context.Context, cover domains.Cover) error {
 	query := `
 	INSERT INTO cover (title, description, images_keys, status, user_id, designer_nickname, designer_avatar_key, book_id)
-	VALUES ($1, $2, $3, $4, $5, $6, $7);
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
 `
 	_, err := c.connection.Exec(ctx, query,
 		cover.Title,

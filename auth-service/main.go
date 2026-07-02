@@ -9,6 +9,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -22,7 +24,7 @@ func main() {
 		return
 	}
 
-	ctx := context.Background()
+	ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	conn, err := db.CreateConnection(ctx)
 	if err != nil {
 		fmt.Printf("Не удалось создать подключение к бд: %v", err)
