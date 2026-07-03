@@ -49,7 +49,7 @@ services:
 
   auth-service:
     build:
-      context: ./auth-service
+      context: ./auth-service/cmd
     depends_on:
       - postgres-auth
     ports:
@@ -68,7 +68,7 @@ services:
 
   book-cover-service:
     build:
-      context: ./book-cover-service
+      context: ./book-cover-service/cmd
     depends_on:
       - postgres-book-cover
     ports:
