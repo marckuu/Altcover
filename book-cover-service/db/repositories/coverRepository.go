@@ -255,13 +255,13 @@ func (c *CoverRepository) GetCoversByIDs(ctx context.Context, coversIDs []uuid.U
 
 func (c *CoverRepository) GetMostLikedCoversForNDays(ctx context.Context, daysNumber int, offset int, limit int) ([]domains.Cover, error) {
 	query := `
-	SELECT (id, title, description, images_keys, status, user_id, designer_nickname, designer_avatar_key, book_id), COUNT(cover_like.user_id) AS likes_count
+	SELECT c.id, c.title, c.description, c.images_keys, c.status, c.book_id, c.user_id, c.designer_nickname, c.designer_avatar_key
 	FROM cover c
 	INNER JOIN cover_like l
-	ON c.id=l.user_id
+	ON c.id=l.cover_id
 	AND l.created_at >= now() - ($1 *interval '1 day')
 	GROUP BY c.id
-	ORDER BY likes_count DESC
+	ORDER BY COUNT(*) DESC
 	OFFSET $2
 	LIMIT $3;
 `
@@ -282,10 +282,11 @@ func (c *CoverRepository) GetMostLikedCoversForNDays(ctx context.Context, daysNu
 			&cover.Description,
 			&cover.ImagesKeys,
 			&cover.Status,
+			&cover.BookID,
 			&cover.UserID,
 			&cover.DesignerNickname,
 			&cover.DesignerAvatarKey,
-			&cover.BookID)
+		)
 
 		if err != nil {
 			return []domains.Cover{}, fmt.Errorf("cover repository -> get most liked -> parsing: %w", err)
@@ -303,7 +304,7 @@ func (c *CoverRepository) GetMostLikedCoversForNDays(ctx context.Context, daysNu
 
 func (c *CoverRepository) GetCoversByBook(ctx context.Context, bookID uuid.UUID, offset int, limit int) ([]domains.Cover, error) {
 	query := `
-	SELECT (id, title, description, images_keys, status, user_id, designer_nickname, designer_avatar_key, book_id)
+	SELECT id, title, description, images_keys, status, user_id, designer_nickname, designer_avatar_key, book_id
 	FROM cover
 	WHERE book_id = $1
 	OFFSET $2

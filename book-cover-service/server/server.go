@@ -55,14 +55,14 @@ func (s *ServerManager) StartServer() {
 		)
 
 	router.
-		Path("/books").
+		Path("/books/{book_id}").
 		Methods("DELETE").
 		HandlerFunc(
 			s.middleware.Auth(http.HandlerFunc(s.bookHandlers.HandleDeleteBook)),
 		)
 
 	router.
-		Path("/designer/me/covers").
+		Path("/designers/me/covers").
 		Methods("GET").
 		Queries("offset", "{offset}", "limit", "{limit}").
 		HandlerFunc(
@@ -113,14 +113,14 @@ func (s *ServerManager) StartServer() {
 		HandlerFunc(s.coverHandlers.HandleGetCoversByBook)
 
 	router.
-		Path("/covers/{cover_id}/likes").
+		Path("/covers/{cover_id}/like").
 		Methods("POST").
 		HandlerFunc(
 			s.middleware.Auth(http.HandlerFunc(s.coverLikeHandlers.HandleSetLike)),
 		)
 
 	router.
-		Path("/covers{cover_id}/favorites").
+		Path("/covers/{cover_id}/favorite").
 		Methods("POST").
 		HandlerFunc(
 			s.middleware.Auth(http.HandlerFunc(s.favoritesHandlers.HandleAddCoverToFavorites)),

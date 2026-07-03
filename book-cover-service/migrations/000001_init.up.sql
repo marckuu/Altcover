@@ -8,12 +8,12 @@ CREATE TABLE cover (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
     description VARCHAR(200),
-    images_keys TEXT,
+    images_keys TEXT[],
     status SMALLINT NOT NULL CHECK (status in (0, 1, 2)),
     book_id UUID,
     FOREIGN KEY (book_id) REFERENCES book(id),
     user_id UUID NOT NULL,
-    designer_nickname UUID NOT NULL,
+    designer_nickname VARCHAR(60) NOT NULL,
     designer_avatar_key TEXT NOT NULL
 );
 
@@ -42,5 +42,6 @@ CREATE TABLE cover_like (
 CREATE TABLE designer_profile_snapshot (
     id UUID PRIMARY KEY,
     avatar_key TEXT,
-    nickname VARCHAR(60)
+    nickname VARCHAR(60),
+    user_id UUID NOT NULL UNIQUE
 );
