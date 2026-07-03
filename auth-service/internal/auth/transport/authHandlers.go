@@ -14,6 +14,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -22,102 +23,94 @@ type HTTPAuthHandlers struct {
 	jwtManager   repositories.JWTManager
 	userService  services2.UserService
 	ctx          context.Context
+	logger       *zap.Logger
 }
 
 func NewHTTPAuthHandler(tokenService services2.TokenService,
 	JWTManager repositories.JWTManager,
-	userService services2.UserService, ctx context.Context) HTTPAuthHandlers {
+	userService services2.UserService,
+	ctx context.Context,
+	logger *zap.Logger) HTTPAuthHandlers {
 	return HTTPAuthHandlers{
 		tokenService: tokenService,
 		jwtManager:   JWTManager,
 		userService:  userService,
 		ctx:          ctx,
+		logger:       logger,
 	}
 }
 
 func (a *HTTPAuthHandlers) HandleRegister(w http.ResponseWriter, r *http.Request) {
-	// Получить ник и пароль из запроса
 	var loginRequest dto.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&loginRequest); err != nil {
-		fmt.Printf("не удалось получить ник и пароль из запроса, %v", err)
+		a.logger.Error(fmt.Errorf("не удалось получить ник и пароль из запроса: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	// Попробовать найти пользователя в системе по нику
 	_, err := a.userService.GetUserByNickname(a.ctx, loginRequest.Nickname)
 	if err == nil {
-		fmt.Printf("пользователь уже существует, %v", err)
+		a.logger.Error(fmt.Errorf("пользователь уже существует: %w", err).Error())
 		errors2.SendErrorResponse(w, errors.New("пользователь уже существует"), http.StatusBadRequest)
 		return
 	}
 
-	// Получить хэш пароля
 	PasswordHash, err := bcrypt.GenerateFromPassword([]byte(loginRequest.Password), 10)
 	if err != nil {
-		fmt.Printf("ошибка получения хэша пароля, %v", err)
+		a.logger.Error(fmt.Errorf("ошибка получения хэша пароля: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	// Создать нового пользователя
 	var user domains.User
 
 	user.Role = enums.User
 	user.Nickname = loginRequest.Nickname
 	user.PasswordHash = PasswordHash
 
-	// Добавить пользователя
 	if err = a.userService.AddUser(a.ctx, user); err != nil {
-		fmt.Printf("ошибка добавления нового пользователя, %v", err)
+		a.logger.Error(fmt.Errorf("ошибка добавления нового пользователя: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	// Отправить ответ об успешной регистраци
 	w.WriteHeader(http.StatusOK)
 }
 
 func (a *HTTPAuthHandlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	// Получить ник и пароль из запроса
 	var loginRequest dto.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&loginRequest); err != nil {
-		fmt.Printf("не удалось получить ник и пароль из запроса, %v", err)
+		a.logger.Error(fmt.Errorf("не удалось получить ник и пароль из запроса: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	// Попробовать найти пользователя в системе по нику
 	user, err := a.userService.GetUserByNickname(a.ctx, loginRequest.Nickname)
 	if err != nil {
-		fmt.Printf("пользователь не найден, %v", err)
+		a.logger.Error(fmt.Errorf("пользователь не найден: %w", err).Error())
 		errors2.SendErrorResponse(w, errors.New("пользователь не найден"), http.StatusBadRequest)
 		return
 	}
 
-	// Сравнить хэши паролей
 	if err = bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(loginRequest.Password)); err != nil {
-		fmt.Printf("неверный пароль, %v", err)
+		a.logger.Error(fmt.Errorf("неверный пароль: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	// Сгенерировать пару токенов
 	tokenPair, err := a.jwtManager.GenerateTokenPair(user.ID)
 	if err != nil {
-		fmt.Printf("не удалось сгенерировать jwt токены, %v", err)
+		a.logger.Error(fmt.Errorf("не удалось сгенерировать jwt токены: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	// Записать refresh токен в бд
 	if err = a.tokenService.AddRefreshToken(a.ctx, tokenPair.RefreshToken); err != nil {
-		fmt.Printf("не удалось сохранить refresh токен, %v", err)
+		a.logger.Error(fmt.Errorf("не удалось сохранить refresh токен: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	// Записать refresh в cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:     "refresh_token",
 		Value:    tokenPair.RefreshToken,
@@ -128,58 +121,53 @@ func (a *HTTPAuthHandlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   60 * 60 * 24 * 30,
 	})
 
-	// access отправить в ответе
 	err = json.NewEncoder(w).Encode(map[string]string{
 		"access_token": tokenPair.AccessToken,
 	})
 	if err != nil {
-		fmt.Printf("не удалось отправить access токен в ответе, %v", err)
+		a.logger.Error(fmt.Errorf("не удалось отправить access токен в ответе: %w", err).Error())
 	}
 
 }
 
 func (a *HTTPAuthHandlers) HandleRefresh(w http.ResponseWriter, r *http.Request) {
-	// Получить refresh из cookie
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
-		fmt.Printf("отсутствует refresh токен, %v", err)
+		a.logger.Error(fmt.Errorf("отсутствует refresh токен: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusUnauthorized)
 		return
 	}
 
-	// Проверить валидность refresh токена
 	claims, err := a.jwtManager.Parse(cookie.Value)
 	if err != nil {
-		fmt.Printf("неккоректный refresh токен, %v", err)
+		a.logger.Error(fmt.Errorf("неккоректный refresh токен: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusUnauthorized)
 		return
 	}
 
-	// Проверить в бд, что токен не отозван
 	isRevoked, err := a.tokenService.IsTokenRevoked(a.ctx, cookie.Value)
 	if err != nil {
-		fmt.Printf("не удалось проверить токен, %v", err)
+		a.logger.Error(fmt.Errorf("не удалось проверить токен: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	if isRevoked {
-		fmt.Printf("переданный refresh токен отозван, %v", err)
+		a.logger.Error(fmt.Errorf("переданный refresh токен отозван: %w", err).Error())
 		errors2.SendErrorResponse(w, errors.New("переданный refresh токен отозван"), http.StatusInternalServerError)
 		return
 	}
 
-	// Сгенерировать новый access токен и вернуть его в ответе
 	userID, err := uuid.Parse(claims.Subject)
 	if err != nil {
-		fmt.Printf("ошибка получения id пользователя из refresh токена, %v", err)
+		a.logger.Error(fmt.Errorf("ошибка получения id пользователя из refresh токена: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	accessToken, err := a.jwtManager.GenerateAccessToken(userID)
 	if err != nil {
-		fmt.Printf("не удалось сгенерировать access токен, %v", err)
+		a.logger.Error(fmt.Errorf("не удалось сгенерировать access токен: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -188,36 +176,31 @@ func (a *HTTPAuthHandlers) HandleRefresh(w http.ResponseWriter, r *http.Request)
 		"access_token": accessToken,
 	})
 	if err != nil {
-		fmt.Printf("не удалось отправить access токен, %v", err)
-		// Логировать ошибку
+		a.logger.Error(fmt.Errorf("не удалось отправить access токен: %w", err).Error())
 	}
 }
 
 func (a *HTTPAuthHandlers) HandleLogout(w http.ResponseWriter, r *http.Request) {
-	// Получить refresh из cookie
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
-		fmt.Printf("отсутствует refresh токен, %v", err)
+		a.logger.Error(fmt.Errorf("отсутствует refresh токен: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusUnauthorized)
 		return
 	}
 
-	// Проверить валидность refresh токена
 	_, err = a.jwtManager.Parse(cookie.Value)
 	if err != nil {
-		fmt.Printf("неккоректный refresh токен, %v", err)
+		a.logger.Error(fmt.Errorf("неккоректный refresh токен: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusUnauthorized)
 		return
 	}
 
-	// Отозвать refresh токен из бд
 	if err = a.tokenService.DeleteRefreshToken(a.ctx, cookie.Value); err != nil {
-		fmt.Printf("ошибка удаления refresh токена из базы, %v", err)
+		a.logger.Error(fmt.Errorf("ошибка удаления refresh токена из базы: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	// Удалить refresh из cookies
 	http.SetCookie(w, &http.Cookie{
 		Name:     "refresh_token",
 		Value:    "",

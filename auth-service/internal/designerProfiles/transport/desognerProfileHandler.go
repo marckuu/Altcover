@@ -9,135 +9,129 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"go.uber.org/zap"
 )
 
 type HTTPDesignerProfileHandlers struct {
 	designerProfileService services.DesignerProfileService
 	ctx                    context.Context
+	logger                 *zap.Logger
 }
 
 func NewHTTPDesignerProfileHandlers(designerProfileService services.DesignerProfileService,
-	ctx context.Context) HTTPDesignerProfileHandlers {
+	ctx context.Context,
+	logger *zap.Logger) HTTPDesignerProfileHandlers {
 	return HTTPDesignerProfileHandlers{
 		designerProfileService: designerProfileService,
 		ctx:                    ctx,
+		logger:                 logger,
 	}
 }
 
 func (d *HTTPDesignerProfileHandlers) HandleCreateMyDesignerProfile(w http.ResponseWriter, r *http.Request) {
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
-		fmt.Printf("Не удалось распознать переданный идентификатор: %s", err)
+		d.logger.Error(fmt.Errorf("не удалось распознать переданный идентификатор: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	_, err = d.designerProfileService.GetProfileByUserID(d.ctx, userID)
 	if err == nil {
-		fmt.Printf("Профиль дизайнера уже существует: %s", err)
+		d.logger.Error(fmt.Errorf("профиль дизайнера уже существует: %w", err).Error())
 		errors.SendErrorResponse(w, fmt.Errorf("профиль текущего дизайнера уже существует"), http.StatusInternalServerError)
 		return
 	}
 
-	// Считать новый профиль и тела
 	var designerProfile domains.DesignerProfile
 
 	if err = json.NewDecoder(r.Body).Decode(&designerProfile); err != nil {
-		fmt.Printf("Не удалось распознать тело запроса: %s", err)
+		d.logger.Error(fmt.Errorf("не удалось распознать тело запроса: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	designerProfile.UserID = userID
 
-	// Провалидировать профиль
-
-	if err := d.designerProfileService.CreateDesignerProfile(d.ctx, designerProfile); err != nil {
-		fmt.Printf("Не удалось создать профиль дизайнера: %s", err)
+	if err = d.designerProfileService.CreateDesignerProfile(d.ctx, designerProfile); err != nil {
+		d.logger.Error(fmt.Errorf("не удалось создать профиль дизайнера: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 }
 
 func (d *HTTPDesignerProfileHandlers) HandleUpdateMyDesignerProfile(w http.ResponseWriter, r *http.Request) {
-	// Считать новый профиль и тела
 	var newDesignerProfile domains.DesignerProfile
 
 	if err := json.NewDecoder(r.Body).Decode(&newDesignerProfile); err != nil {
-		fmt.Printf("Не удалось распознать тело запроса: %s", err)
+		d.logger.Error(fmt.Errorf("не удалось распознать тело запроса: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
-		fmt.Printf("Не удалось распознать переданный идентификатор: %s", err)
+		d.logger.Error(fmt.Errorf("не удалось распознать переданный идентификатор: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	oldDesignerProfile, err := d.designerProfileService.GetProfileByUserID(d.ctx, userID)
 	if err != nil {
-		fmt.Printf("Ошибка получения профиля дизайнера: %s", err)
+		d.logger.Error(fmt.Errorf("ошибка получения профиля дизайнера: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	newDesignerProfile.ID = oldDesignerProfile.ID
 
-	// Провалидировать профиль
-
-	// Обновить профиль
 	if err = d.designerProfileService.UpdateDesignerProfile(d.ctx, newDesignerProfile); err != nil {
-		fmt.Printf("Ошибка при сохранении обложки: %s", err)
+		d.logger.Error(fmt.Errorf("ошибка при сохранении обложки: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
-
 }
 
 func (d *HTTPDesignerProfileHandlers) HandleGetMyDesignerProfile(w http.ResponseWriter, r *http.Request) {
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
-		fmt.Printf("Не удалось распознать переданный идентификатор: %s", err)
+		d.logger.Error(fmt.Errorf("не удалось распознать переданный идентификатор: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	// Найти профиль и вернуть его
 	designerProfile, err := d.designerProfileService.GetProfileByUserID(d.ctx, userID)
 	if err != nil {
-		fmt.Printf("Ошибка получения профиля дизайнера: %s", err)
+		d.logger.Error(fmt.Errorf("ошибка получения профиля дизайнера: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	// Записать профиль в ответ
 	w.WriteHeader(http.StatusOK)
 
 	if err = json.NewEncoder(w).Encode(designerProfile); err != nil {
-		fmt.Printf("Не удалось отправить ответ с профилем дизайнера: %s", err)
-		// Логировать ошибку
+		d.logger.Error(fmt.Errorf("не удалось отправить ответ с профилем дизайнера: %w", err).Error())
 	}
 }
 
 func (d *HTTPDesignerProfileHandlers) HandleDeleteMyDesignerProfile(w http.ResponseWriter, r *http.Request) {
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
-		fmt.Printf("Не удалось получить ID пользователя из токена: %s", err)
+		d.logger.Error(fmt.Errorf("не удалось получить ID пользователя из токена: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	designerProfile, err := d.designerProfileService.GetProfileByUserID(d.ctx, userID)
 	if err != nil {
-		fmt.Printf("Не удалось получить профиль дизайнера: %s", err)
+		d.logger.Error(fmt.Errorf("не удалось получить профиль дизайнера: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	if err = d.designerProfileService.DeleteDesignerProfile(d.ctx, designerProfile.ID); err != nil {
-		fmt.Printf("Не удалось удалить профиль: %s", err)
+		d.logger.Error(fmt.Errorf("не удалось удалить профиль: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}

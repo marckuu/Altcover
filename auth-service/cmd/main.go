@@ -2,6 +2,7 @@ package main
 
 import (
 	"auth-service/core/db"
+	logs "auth-service/core/logger"
 	"auth-service/core/shared/messaging"
 	"auth-service/internal/auth/repositories"
 	services2 "auth-service/internal/auth/services"
@@ -25,6 +26,14 @@ func main() {
 		return
 	}
 
+	logger, loggerCancel, err := logs.NewLogger("INFO")
+	if err != nil {
+		fmt.Printf("Не удалось создать логгер: %v", err)
+		return
+	}
+
+	defer loggerCancel()
+
 	ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	conn, err := db.CreateConnection(ctx)
 	if err != nil {
@@ -38,6 +47,7 @@ func main() {
 		services.NewDesignerProfileService(repositories2.NewDesignerProfileRepository(conn), producer),
 		repositories.NewJWTManager(),
 		ctx,
+		logger,
 	)
 
 	serverManager.StartServer()

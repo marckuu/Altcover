@@ -11,6 +11,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
 type ServerManager struct {
@@ -23,10 +24,11 @@ func NewServerManager(tokenService services2.TokenService,
 	userService services2.UserService,
 	designerProfileService services.DesignerProfileService,
 	JWTManager repositories.JWTManager,
-	ctx context.Context) ServerManager {
+	ctx context.Context,
+	logger *zap.Logger) ServerManager {
 	return ServerManager{
-		authHandlers:            transport.NewHTTPAuthHandler(tokenService, JWTManager, userService, ctx),
-		designerProfileHandlers: transport2.NewHTTPDesignerProfileHandlers(designerProfileService, ctx),
+		authHandlers:            transport.NewHTTPAuthHandler(tokenService, JWTManager, userService, ctx, logger),
+		designerProfileHandlers: transport2.NewHTTPDesignerProfileHandlers(designerProfileService, ctx, logger),
 		middleware:              middleware.NewAuthMiddleware(JWTManager),
 	}
 }
