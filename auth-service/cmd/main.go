@@ -32,7 +32,18 @@ func main() {
 		return
 	}
 
-	defer loggerCancel()
+	defer func() {
+		err = loggerCancel()
+		if err != nil {
+			logger.Error(fmt.Errorf("не удалось закрыть логгер: %w", err).Error())
+			return
+		}
+		err = producer.Close()
+		if err != nil {
+			logger.Error(fmt.Errorf("не удалось закрыть продюсера: %w", err).Error())
+			return
+		}
+	}()
 
 	ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	conn, err := db.CreateConnection(ctx)

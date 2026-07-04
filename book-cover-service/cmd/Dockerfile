@@ -2,12 +2,11 @@ FROM golang:latest AS builder
 
 WORKDIR /app
 
-COPY ../go.mod go.sum ./
-RUN go mod download
+COPY . .
 
-COPY .. .
+RUN go mod tidy
 
-RUN go build -o app main.go
+RUN ["go", "build", "-o", "app", "./cmd"]
 
 FROM debian:bookworm-slim
 

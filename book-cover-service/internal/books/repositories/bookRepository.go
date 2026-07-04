@@ -28,7 +28,7 @@ func (b *BookRepository) AddBook(ctx context.Context, book domains.Book) error {
 	VALUES ($1, $2);
 `
 	if _, err := b.connection.Exec(ctx, query, book.Title, book.Description); err != nil {
-		return fmt.Errorf("book repo -> add: %w", err)
+		return fmt.Errorf("book repo / add: %w", err)
 	}
 
 	return nil
@@ -45,7 +45,7 @@ func (b *BookRepository) GetBookByID(ctx context.Context, bookID int64) (domains
 	var book domains.Book
 
 	if err := resultRow.Scan(&book.ID, &book.Title, &book.Description); err != nil {
-		return domains.Book{}, fmt.Errorf("book repo -> get by id: %w", err)
+		return domains.Book{}, fmt.Errorf("book repo / get by id: %w", err)
 	}
 
 	return book, nil
@@ -60,7 +60,7 @@ func (b *BookRepository) GetBooks(ctx context.Context, offset int, limit int) ([
 `
 	resultRows, err := b.connection.Query(ctx, query, offset, limit)
 	if err != nil {
-		return []domains.Book{}, fmt.Errorf("book repo -> get all -> query: %w", err)
+		return []domains.Book{}, fmt.Errorf("book repo / get all / query: %w", err)
 	}
 
 	defer resultRows.Close()
@@ -71,14 +71,14 @@ func (b *BookRepository) GetBooks(ctx context.Context, offset int, limit int) ([
 		var book domains.Book
 
 		if err = resultRows.Scan(&book.ID, &book.Title, &book.Description); err != nil {
-			return []domains.Book{}, fmt.Errorf("book repo -> get all -> parsing: %w", err)
+			return []domains.Book{}, fmt.Errorf("book repo / get all / parsing: %w", err)
 		}
 
 		books = append(books, book)
 	}
 
 	if resultRows.Err() != nil {
-		return []domains.Book{}, fmt.Errorf("book repo -> get all -> query result: %w", err)
+		return []domains.Book{}, fmt.Errorf("book repo / get all / query result: %w", err)
 	}
 
 	return books, nil
@@ -92,7 +92,7 @@ func (b *BookRepository) UpdateBook(ctx context.Context, book domains.Book) erro
 `
 	tag, err := b.connection.Exec(ctx, query, book.Title, book.Description, book.ID)
 	if err != nil {
-		return fmt.Errorf("book repo -> update: %w", err)
+		return fmt.Errorf("book repo / update: %w", err)
 	}
 
 	if tag.RowsAffected() == 0 {
@@ -109,7 +109,7 @@ func (b *BookRepository) DeleteBook(ctx context.Context, bookID uuid.UUID) error
 `
 	tag, err := b.connection.Exec(ctx, query, bookID)
 	if err != nil {
-		return fmt.Errorf("book repo -> delete: %w", err)
+		return fmt.Errorf("book repo / delete: %w", err)
 	}
 
 	if tag.RowsAffected() == 0 {

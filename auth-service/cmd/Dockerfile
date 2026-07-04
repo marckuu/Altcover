@@ -2,11 +2,11 @@ FROM golang:1.25-bookworm AS builder
 
 WORKDIR /app
 
-COPY .. .
+COPY . .
 
 RUN go mod tidy
 
-RUN go build -o app main.go
+RUN ["go", "build", "-o", "app", "./cmd"]
 
 FROM debian:bookworm-slim
 

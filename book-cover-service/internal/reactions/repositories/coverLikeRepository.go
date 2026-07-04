@@ -28,7 +28,7 @@ func (lr *CoverLikeRepository) AddLike(ctx context.Context, userID uuid.UUID, co
 	VALUES ($1, $2);
 `
 	if _, err := lr.connection.Exec(ctx, query, userID, coverID); err != nil {
-		return fmt.Errorf("like repo -> add: %w", err)
+		return fmt.Errorf("like repo / add: %w", err)
 	}
 
 	return nil

@@ -28,7 +28,7 @@ func (f *FavoritesRepository) AddCoverToFavorites(ctx context.Context, userID uu
 `
 	_, err := f.connection.Exec(ctx, query, userID, coverID)
 	if err != nil {
-		return fmt.Errorf("cover repository -> add cover to favorites: %w", err)
+		return fmt.Errorf("cover repository / add cover to favorites: %w", err)
 	}
 
 	return nil
@@ -43,7 +43,7 @@ func (f *FavoritesRepository) GetFavoriteCoversIDs(ctx context.Context, userID u
 `
 	resultRow, err := f.connection.Query(ctx, query, userID, offset, limit)
 	if err != nil {
-		return []uuid.UUID{}, fmt.Errorf("cover repository -> get favorites ids -> query: %w", err)
+		return []uuid.UUID{}, fmt.Errorf("cover repository / get favorites ids / query: %w", err)
 	}
 
 	defer resultRow.Close()
@@ -53,13 +53,13 @@ func (f *FavoritesRepository) GetFavoriteCoversIDs(ctx context.Context, userID u
 	for resultRow.Next() {
 		var coverID uuid.UUID
 		if err = resultRow.Scan(&coverID); err != nil {
-			return []uuid.UUID{}, fmt.Errorf("cover repository -> get favorites ids -> parsing: %w", err)
+			return []uuid.UUID{}, fmt.Errorf("cover repository / get favorites ids / parsing: %w", err)
 		}
 		coversIDs = append(coversIDs, coverID)
 	}
 
 	if resultRow.Err() != nil {
-		return []uuid.UUID{}, fmt.Errorf("cover repository -> get favorites ids -> query result: %w", err)
+		return []uuid.UUID{}, fmt.Errorf("cover repository / get favorites ids / query result: %w", err)
 	}
 
 	return coversIDs, nil

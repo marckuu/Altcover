@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"book-cover-service/internal/reactions/transport"
 	"book-cover-service/internal/snapshots/transport/dto"
 	"context"
 	"errors"
@@ -29,7 +28,7 @@ func (d *DesignerProfileSnapshotRepository) AddDesignerProfileSnapshot(ctx conte
 	VALUES ($1, $2, $3, $4);
 `
 	if _, err := d.connection.Exec(ctx, query, profile.ID, profile.AvatarKey, profile.Nickname, profile.UserID); err != nil {
-		return fmt.Errorf("designer profile snapshot repo -> add: %w", err)
+		return fmt.Errorf("designer profile snapshot repo / add: %w", err)
 	}
 
 	return nil
@@ -43,11 +42,11 @@ func (d *DesignerProfileSnapshotRepository) UpdateDesignerProfileSnapshot(ctx co
 `
 	tag, err := d.connection.Exec(ctx, query, profile.AvatarKey, profile.Nickname, profile.UserID, profile.ID)
 	if err != nil {
-		return fmt.Errorf("designer profile snapshot repo -> update: %w", err)
+		return fmt.Errorf("designer profile snapshot repo / update: %w", err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return transport.errCommentNotFound
+		return errDesignerProfileSnapshotNotFound
 	}
 
 	return nil
@@ -60,11 +59,11 @@ func (d *DesignerProfileSnapshotRepository) DeleteDesignerProfileSnapshot(ctx co
 `
 	tag, err := d.connection.Exec(ctx, query, profileID)
 	if err != nil {
-		return fmt.Errorf("comment repo -> delete: %w", err)
+		return fmt.Errorf("comment repo / delete: %w", err)
 	}
 
 	if tag.RowsAffected() == 0 {
-		return transport.errCommentNotFound
+		return errDesignerProfileSnapshotNotFound
 	}
 
 	return nil

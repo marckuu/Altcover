@@ -33,8 +33,6 @@ func main() {
 		return
 	}
 
-	defer loggerCancel()
-
 	ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	conn, err := db.CreateConnection(ctx)
 	if err != nil {
@@ -67,12 +65,21 @@ func main() {
 
 	eventHandlers := shared.NewEventHandlers(ctx, designerProfileSnapshotRepository)
 
-	// Добавить контекст, закрытие консюмера
-	go func() {
-		defer consumer.Close()
-		if err = consumer.Consume(eventHandlers.HandleKafkaEvent); err != nil {
+	if err = consumer.Consume(eventHandlers.HandleKafkaEvent); err != nil {
+		logger.Error(fmt.Errorf("не удалось запустить консюмер: %w", err).Error())
+		return
+	}
+
+	defer func() {
+		err = consumer.Close()
+		if err != nil {
+			logger.Error(fmt.Errorf("не удалось закрыть консюмер: %w", err).Error())
 			return
-			// Логировать ошибку
+		}
+		err = loggerCancel()
+		if err != nil {
+			logger.Error(fmt.Errorf("не удалось закрыть логгер: %w", err).Error())
+			return
 		}
 	}()
 
