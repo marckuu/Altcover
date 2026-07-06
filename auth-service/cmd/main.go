@@ -32,6 +32,8 @@ func main() {
 		return
 	}
 
+	loggerCover := logs.NewZapLoggerCover(logger)
+
 	defer func() {
 		err = loggerCancel()
 		if err != nil {
@@ -58,7 +60,7 @@ func main() {
 		services.NewDesignerProfileService(repositories2.NewDesignerProfileRepository(conn), producer),
 		repositories.NewJWTManager(),
 		ctx,
-		logger,
+		loggerCover,
 	)
 
 	serverManager.StartServer()

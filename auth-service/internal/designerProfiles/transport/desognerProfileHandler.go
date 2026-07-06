@@ -3,25 +3,24 @@ package transport
 import (
 	"auth-service/core/domains"
 	"auth-service/core/errors"
+	logs "auth-service/core/logger"
 	"auth-service/core/middleware"
 	"auth-service/internal/designerProfiles/services"
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"go.uber.org/zap"
 )
 
 type HTTPDesignerProfileHandlers struct {
 	designerProfileService services.DesignerProfileService
 	ctx                    context.Context
-	logger                 *zap.Logger
+	logger                 logs.Logger
 }
 
 func NewHTTPDesignerProfileHandlers(designerProfileService services.DesignerProfileService,
 	ctx context.Context,
-	logger *zap.Logger) HTTPDesignerProfileHandlers {
+	logger logs.Logger) HTTPDesignerProfileHandlers {
 	return HTTPDesignerProfileHandlers{
 		designerProfileService: designerProfileService,
 		ctx:                    ctx,

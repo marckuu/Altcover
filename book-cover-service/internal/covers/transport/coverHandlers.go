@@ -2,6 +2,7 @@ package transport
 
 import (
 	"book-cover-service/core/domains"
+	logs "book-cover-service/core/logger"
 	"book-cover-service/core/middleware"
 	tools2 "book-cover-service/core/tools"
 	services2 "book-cover-service/internal/covers/services"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"go.uber.org/zap"
 )
 
 var mostLikedInterval = 3
@@ -24,13 +24,13 @@ type HTTPCoverHandlers struct {
 	coverService                   services2.CoverService
 	designerProfileSnapshotService services.DesignerProfileSnapshotService
 	ctx                            context.Context
-	logger                         *zap.Logger
+	logger                         logs.Logger
 }
 
 func NewCoverHandlers(coverService services2.CoverService,
 	designerProfileSnapshotService services.DesignerProfileSnapshotService,
 	ctx context.Context,
-	logger *zap.Logger) HTTPCoverHandlers {
+	logger logs.Logger) HTTPCoverHandlers {
 	return HTTPCoverHandlers{
 		coverService:                   coverService,
 		designerProfileSnapshotService: designerProfileSnapshotService,

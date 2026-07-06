@@ -1,6 +1,7 @@
 package transport
 
 import (
+	logs "book-cover-service/core/logger"
 	"book-cover-service/core/middleware"
 	tools2 "book-cover-service/core/tools"
 	"book-cover-service/internal/reactions/services"
@@ -11,16 +12,15 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"go.uber.org/zap"
 )
 
 type HTTPFavoritesHandlers struct {
 	favoritesService services.FavoritesService
 	ctx              context.Context
-	logger           *zap.Logger
+	logger           logs.Logger
 }
 
-func NewHTTPFavoritesHandlers(favoriteService services.FavoritesService, ctx context.Context, logger *zap.Logger) HTTPFavoritesHandlers {
+func NewHTTPFavoritesHandlers(favoriteService services.FavoritesService, ctx context.Context, logger logs.Logger) HTTPFavoritesHandlers {
 	return HTTPFavoritesHandlers{
 		favoritesService: favoriteService,
 		ctx:              ctx,

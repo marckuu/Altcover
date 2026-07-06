@@ -33,6 +33,8 @@ func main() {
 		return
 	}
 
+	loggerCover := logs.NewZapLoggerCover(logger)
+
 	ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	conn, err := db.CreateConnection(ctx)
 	if err != nil {
@@ -54,7 +56,7 @@ func main() {
 		services2.NewBookService(bookRepository),
 		repositories.NewJWTManager(),
 		ctx,
-		logger,
+		loggerCover,
 	)
 
 	consumer, err := messaging.NewConsumer(addresses, consumerGroupID, topics)

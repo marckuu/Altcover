@@ -1,6 +1,7 @@
 package transport
 
 import (
+	logs "book-cover-service/core/logger"
 	"book-cover-service/core/middleware"
 	"book-cover-service/core/tools"
 	"book-cover-service/internal/reactions/services"
@@ -11,16 +12,15 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"go.uber.org/zap"
 )
 
 type HTTPCoverLikeHandlers struct {
 	coverLikeService services.CoverLikeService
 	ctx              context.Context
-	logger           *zap.Logger
+	logger           logs.Logger
 }
 
-func NewCoverLikeHandlers(coverLikeService services.CoverLikeService, ctx context.Context, logger *zap.Logger) HTTPCoverLikeHandlers {
+func NewCoverLikeHandlers(coverLikeService services.CoverLikeService, ctx context.Context, logger logs.Logger) HTTPCoverLikeHandlers {
 	return HTTPCoverLikeHandlers{
 		coverLikeService: coverLikeService,
 		ctx:              ctx,

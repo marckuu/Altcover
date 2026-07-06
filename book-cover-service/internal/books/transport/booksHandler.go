@@ -2,6 +2,7 @@ package transport
 
 import (
 	"book-cover-service/core/domains"
+	logs "book-cover-service/core/logger"
 	"book-cover-service/core/tools"
 	"book-cover-service/internal/books/services"
 	"context"
@@ -11,16 +12,15 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"go.uber.org/zap"
 )
 
 type HTTPBookHandlers struct {
 	bookService services.BookService
 	ctx         context.Context
-	logger      *zap.Logger
+	logger      logs.Logger
 }
 
-func NewHTTPBookHandlers(bookService services.BookService, ctx context.Context, logger *zap.Logger) HTTPBookHandlers {
+func NewHTTPBookHandlers(bookService services.BookService, ctx context.Context, logger logs.Logger) HTTPBookHandlers {
 	return HTTPBookHandlers{
 		bookService: bookService,
 		ctx:         ctx,

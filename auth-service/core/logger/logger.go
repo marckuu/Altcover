@@ -10,6 +10,13 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+type Logger interface {
+	Debug(msg string)
+	Info(msg string)
+	Warn(msg string)
+	Error(msg string)
+}
+
 func NewLogger(logLevel string) (*zap.Logger, func() error, error) {
 	lvl := zap.NewAtomicLevel()
 	if err := lvl.UnmarshalText([]byte(logLevel)); err != nil {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	logs "book-cover-service/core/logger"
 	"book-cover-service/core/middleware"
 	"book-cover-service/internal/auth/repositories"
 	services2 "book-cover-service/internal/books/services"
@@ -14,7 +15,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"go.uber.org/zap"
 )
 
 type ServerManager struct {
@@ -32,7 +32,7 @@ func NewServerManager(coverService services3.CoverService,
 	bookService services2.BookService,
 	JWTManager repositories.JWTManager,
 	ctx context.Context,
-	logger *zap.Logger) ServerManager {
+	logger logs.Logger) ServerManager {
 	return ServerManager{
 		coverHandlers:     transport2.NewCoverHandlers(coverService, designerProfileSnapshotService, ctx, logger),
 		coverLikeHandlers: transport3.NewCoverLikeHandlers(coverLikeService, ctx, logger),

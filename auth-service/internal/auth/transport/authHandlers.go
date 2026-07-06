@@ -4,6 +4,7 @@ import (
 	"auth-service/core/domains"
 	"auth-service/core/enums"
 	errors2 "auth-service/core/errors"
+	logs "auth-service/core/logger"
 	"auth-service/internal/auth/repositories"
 	services2 "auth-service/internal/auth/services"
 	"auth-service/internal/auth/transport/dto"
@@ -14,7 +15,6 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -23,14 +23,14 @@ type HTTPAuthHandlers struct {
 	jwtManager   repositories.JWTManager
 	userService  services2.UserService
 	ctx          context.Context
-	logger       *zap.Logger
+	logger       logs.Logger
 }
 
 func NewHTTPAuthHandler(tokenService services2.TokenService,
 	JWTManager repositories.JWTManager,
 	userService services2.UserService,
 	ctx context.Context,
-	logger *zap.Logger) HTTPAuthHandlers {
+	logger logs.Logger) HTTPAuthHandlers {
 	return HTTPAuthHandlers{
 		tokenService: tokenService,
 		jwtManager:   JWTManager,
