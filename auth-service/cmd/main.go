@@ -3,8 +3,10 @@ package main
 import (
 	"auth-service/core/db"
 	logs "auth-service/core/logger"
+	"auth-service/core/logger/zap"
 	"auth-service/core/shared/messaging"
 	"auth-service/internal/auth/repositories"
+	"auth-service/internal/auth/repositories/interfaces/jwtCovers"
 	services2 "auth-service/internal/auth/services"
 	repositories2 "auth-service/internal/designerProfiles/repositories"
 	"auth-service/internal/designerProfiles/services"
@@ -32,7 +34,7 @@ func main() {
 		return
 	}
 
-	loggerCover := logs.NewZapLoggerCover(logger)
+	loggerCover := zap.NewZapLoggerCover(logger)
 
 	defer func() {
 		err = loggerCancel()
@@ -58,7 +60,7 @@ func main() {
 		services2.NewTokenService(repositories.NewTokenRepository(conn), producer),
 		services2.NewUserService(repositories.NewUserRepository(conn), producer),
 		services.NewDesignerProfileService(repositories2.NewDesignerProfileRepository(conn), producer),
-		repositories.NewJWTManager(),
+		jwtCovers.NewJwtManagerCover(repositories.JwtManager{}),
 		ctx,
 		loggerCover,
 	)

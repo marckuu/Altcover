@@ -16,8 +16,8 @@ type UserRepository struct {
 	connection *pgx.Conn
 }
 
-func NewUserRepository(conn *pgx.Conn) UserRepository {
-	return UserRepository{
+func NewUserRepository(conn *pgx.Conn) *UserRepository {
+	return &UserRepository{
 		connection: conn,
 	}
 }
@@ -106,7 +106,7 @@ func (u *UserRepository) UpdateUser(ctx context.Context, user domains.User) erro
 	return nil
 }
 
-func (u *UserRepository) DeleteUserByID(ctx context.Context, userID int64) error {
+func (u *UserRepository) DeleteUserByID(ctx context.Context, userID uuid.UUID) error {
 	query := `
 	DELETE FROM users
 	WHERE id = $1;

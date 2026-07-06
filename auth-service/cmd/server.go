@@ -3,8 +3,8 @@ package main
 import (
 	logs "auth-service/core/logger"
 	"auth-service/core/middleware"
-	"auth-service/internal/auth/repositories"
-	services2 "auth-service/internal/auth/services"
+	"auth-service/internal/auth/repositories/interfaces"
+	servicesInterfaces "auth-service/internal/auth/services/interfaces"
 	"auth-service/internal/auth/transport"
 	"auth-service/internal/designerProfiles/services"
 	transport2 "auth-service/internal/designerProfiles/transport"
@@ -20,16 +20,16 @@ type ServerManager struct {
 	middleware              middleware.AuthMiddleware
 }
 
-func NewServerManager(tokenService services2.TokenService,
-	userService services2.UserService,
+func NewServerManager(tokenService servicesInterfaces.TokenService,
+	userService servicesInterfaces.UserService,
 	designerProfileService services.DesignerProfileService,
-	JWTManager repositories.JWTManager,
+	tokenManager interfaces.TokenManager,
 	ctx context.Context,
 	logger logs.Logger) ServerManager {
 	return ServerManager{
-		authHandlers:            transport.NewHTTPAuthHandler(tokenService, JWTManager, userService, ctx, logger),
+		authHandlers:            transport.NewHTTPAuthHandler(tokenService, tokenManager, userService, ctx, logger),
 		designerProfileHandlers: transport2.NewHTTPDesignerProfileHandlers(designerProfileService, ctx, logger),
-		middleware:              middleware.NewAuthMiddleware(JWTManager),
+		middleware:              middleware.NewAuthMiddleware(tokenManager),
 	}
 }
 

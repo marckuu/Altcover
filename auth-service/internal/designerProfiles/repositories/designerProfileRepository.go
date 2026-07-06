@@ -88,12 +88,11 @@ func (d *DesignerProfileRepository) GetDesignersProfiles(ctx context.Context, of
 func (d *DesignerProfileRepository) UpdateDesignerProfile(ctx context.Context, profile domains.DesignerProfile) error {
 	query := `
 	UPDATE designer_profile
-	SET user_id = $1,
-		avatar_key = $2, 
-		nickname = $3
-	WHERE id = $4;
+	SET avatar_key = $1, 
+		nickname = $2
+	WHERE id = $3;
 `
-	tag, err := d.connection.Exec(ctx, query, profile.UserID, profile.AvatarKey, profile.Nickname, profile.ID)
+	tag, err := d.connection.Exec(ctx, query, profile.AvatarKey, profile.Nickname, profile.ID)
 	if err != nil {
 		return fmt.Errorf("designer profile repo -> update: %w", err)
 	}

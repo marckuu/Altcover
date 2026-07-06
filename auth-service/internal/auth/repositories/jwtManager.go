@@ -12,28 +12,24 @@ var issuer = "hostUrl"        // Заменить на использовани�
 var key = []byte("KeyString") // Заменить на использование из env
 var signingMethod = jwt.SigningMethodHS256
 
-type JWTManager struct {
+type JwtClaims struct {
+	TokenType string `json:"token_type"`
+	jwt.RegisteredClaims
 }
-
-func NewJWTManager() JWTManager {
-	return JWTManager{}
-}
-
 type TokenPair struct {
 	AccessToken  string
 	RefreshToken string
 }
-
-type CustomClaims struct {
-	TokenType string `json:"token_type"`
-	jwt.RegisteredClaims
+type JwtManager struct {
 }
 
-// Метод ParseWithClaims получает возвращаемый из аноним функции ключ, высчитывает подпись и проверяет
-// валидна ли она
-func (j *JWTManager) Parse(token string) (*CustomClaims, error) {
+func NewJwtManager() JwtManager {
+	return JwtManager{}
+}
+
+func (j *JwtManager) Parse(token string) (*JwtClaims, error) {
 	parser := jwt.NewParser()
-	claims := &CustomClaims{}
+	claims := &JwtClaims{}
 	jwtToken, err := parser.ParseWithClaims(token, claims, func(t *jwt.Token) (any, error) {
 
 		if t.Method != signingMethod {
@@ -49,15 +45,15 @@ func (j *JWTManager) Parse(token string) (*CustomClaims, error) {
 	return claims, nil
 }
 
-func (j *JWTManager) IsAccessToken(claims *CustomClaims) bool {
+func (j *JwtManager) IsAccessToken(claims *JwtClaims) bool {
 	return claims.TokenType == "access"
 }
 
-func (j *JWTManager) GenerateTokenPair(userID uuid.UUID) (*TokenPair, error) {
+func (j *JwtManager) GenerateTokenPair(userID uuid.UUID) (*TokenPair, error) {
 	now := time.Now()
 
 	accessToken := jwt.NewWithClaims(signingMethod,
-		CustomClaims{
+		JwtClaims{
 			TokenType: "access",
 			RegisteredClaims: jwt.RegisteredClaims{
 				Subject:   userID.String(),
@@ -72,7 +68,7 @@ func (j *JWTManager) GenerateTokenPair(userID uuid.UUID) (*TokenPair, error) {
 	}
 
 	refreshToken := jwt.NewWithClaims(signingMethod,
-		CustomClaims{
+		JwtClaims{
 			TokenType: "refresh",
 			RegisteredClaims: jwt.RegisteredClaims{
 				Subject:   userID.String(),
@@ -92,11 +88,11 @@ func (j *JWTManager) GenerateTokenPair(userID uuid.UUID) (*TokenPair, error) {
 	}, nil
 }
 
-func (j *JWTManager) GenerateAccessToken(userID uuid.UUID) (string, error) {
+func (j *JwtManager) GenerateAccessToken(userID uuid.UUID) (string, error) {
 	now := time.Now()
 
 	accessToken := jwt.NewWithClaims(signingMethod,
-		CustomClaims{
+		JwtClaims{
 			TokenType: "access",
 			RegisteredClaims: jwt.RegisteredClaims{
 				Subject:   userID.String(),

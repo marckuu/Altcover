@@ -1,4 +1,4 @@
-package logs
+package zap
 
 import "go.uber.org/zap"
 
@@ -13,17 +13,17 @@ func NewZapLoggerCover(logger *zap.Logger) ZapLoggerCover {
 }
 
 func (z ZapLoggerCover) Debug(msg string) {
-	z.Debug(msg)
+	z.logger.Debug(msg)
 }
 
 func (z ZapLoggerCover) Info(msg string) {
-	z.Info(msg)
+	z.logger.Info(msg)
 }
 
 func (z ZapLoggerCover) Warn(msg string) {
-	z.Warn(msg)
+	z.logger.Warn(msg)
 }
 
 func (z ZapLoggerCover) Error(msg string) {
-	z.Error(msg)
+	z.logger.Error(msg)
 }

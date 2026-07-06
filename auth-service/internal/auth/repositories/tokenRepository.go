@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"auth-service/core/domains"
+	errors2 "auth-service/core/errors"
 	"context"
 	"errors"
 	"fmt"
@@ -9,14 +10,12 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-var ErrTokenNotFound = errors.New("токен не найден")
-
 type TokenRepository struct {
 	connection *pgx.Conn
 }
 
-func NewTokenRepository(conn *pgx.Conn) TokenRepository {
-	return TokenRepository{
+func NewTokenRepository(conn *pgx.Conn) *TokenRepository {
+	return &TokenRepository{
 		connection: conn,
 	}
 }
@@ -46,7 +45,7 @@ func (t *TokenRepository) GetRefreshTokenByHash(ctx context.Context, tokenHash [
 
 	if err := resultRow.Scan(&token.ID, &token.TokenHash); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return domains.Token{}, ErrTokenNotFound
+			return domains.Token{}, errors2.ErrTokenNotFound
 		}
 		return domains.Token{}, fmt.Errorf("tokens repo -> get by hash: %w", err)
 	}
@@ -66,7 +65,7 @@ func (t *TokenRepository) DeleteRefreshToken(ctx context.Context, tokenHash []by
 	}
 
 	if tag.RowsAffected() == 0 {
-		return ErrTokenNotFound
+		return errors2.ErrTokenNotFound
 	}
 
 	return nil

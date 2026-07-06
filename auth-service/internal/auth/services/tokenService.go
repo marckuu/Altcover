@@ -1,21 +1,22 @@
 package services
 
 import (
+	globalErrors "auth-service/core/errors"
 	"auth-service/core/shared/messaging"
 	"auth-service/core/tools"
-	"auth-service/internal/auth/repositories"
+	"auth-service/internal/auth/repositories/interfaces"
 	"context"
 	"errors"
 	"fmt"
 )
 
 type TokenService struct {
-	tokenRepository repositories.TokenRepository
+	tokenRepository interfaces.TokenRepository
 	producer        *messaging.Producer
 }
 
-func NewTokenService(tokenRepository repositories.TokenRepository, producer *messaging.Producer) TokenService {
-	return TokenService{
+func NewTokenService(tokenRepository interfaces.TokenRepository, producer *messaging.Producer) *TokenService {
+	return &TokenService{
 		tokenRepository: tokenRepository,
 		producer:        producer,
 	}
@@ -55,7 +56,7 @@ func (t *TokenService) IsTokenRevoked(ctx context.Context, token string) (bool, 
 
 	_, err = t.tokenRepository.GetRefreshTokenByHash(ctx, tokenHash)
 	if err != nil {
-		if errors.Is(err, repositories.ErrTokenNotFound) {
+		if errors.Is(err, globalErrors.ErrTokenNotFound) {
 			return true, nil
 		}
 		return false, fmt.Errorf("ошибка получения хэша refresh токена из базы, %w", err)

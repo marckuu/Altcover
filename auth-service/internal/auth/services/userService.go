@@ -3,7 +3,7 @@ package services
 import (
 	"auth-service/core/domains"
 	"auth-service/core/shared/messaging"
-	"auth-service/internal/auth/repositories"
+	"auth-service/internal/auth/repositories/interfaces"
 	"context"
 
 	"github.com/google/uuid"
@@ -11,28 +11,25 @@ import (
 )
 
 type UserService struct {
-	userRepository repositories.UserRepository
+	userRepository interfaces.UserRepository
 	producer       *messaging.Producer
 }
 
-func NewUserService(repository repositories.UserRepository, producer *messaging.Producer) UserService {
-	return UserService{
+func NewUserService(repository interfaces.UserRepository, producer *messaging.Producer) *UserService {
+	return &UserService{
 		userRepository: repository,
 		producer:       producer,
 	}
 }
 
-type UserRepository interface {
-}
-
-func (us *UserService) AddUser(ctx context.Context, user domains.User) error {
-	if err := us.userRepository.AddUser(ctx, user); err != nil {
+func (u *UserService) AddUser(ctx context.Context, user domains.User) error {
+	if err := u.userRepository.AddUser(ctx, user); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (us *UserService) GetUser() domains.User {
+func (u *UserService) GetUser() domains.User {
 	// 1. Validate
 
 	// 2. repo.Get()
@@ -40,20 +37,20 @@ func (us *UserService) GetUser() domains.User {
 	return domains.User{}
 }
 
-func (us *UserService) UpdateUser(user domains.User) {
+func (u *UserService) UpdateUser(user domains.User) {
 	// 1. Validate
 
 	// 2. repo.Update()
 }
 
-func (us *UserService) DeleteUser(userID pgtype.UUID) {
+func (u *UserService) DeleteUser(userID pgtype.UUID) {
 	// 1. Validate
 
 	// 2. repo.Update()
 }
 
-func (u *UserService) GetUserIDFromTokenClaims(claims *repositories.CustomClaims) (uuid.UUID, error) {
-	userID := claims.Subject
+func (u *UserService) GetUserIDFromTokenClaims(claims *interfaces.CustomClaims) (uuid.UUID, error) {
+	userID := claims.RegisteredClaims.Subject
 	userIDConverted, err := uuid.Parse(userID)
 	if err != nil {
 		return uuid.UUID{}, err

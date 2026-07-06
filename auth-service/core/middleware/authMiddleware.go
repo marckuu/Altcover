@@ -2,7 +2,7 @@ package middleware
 
 import (
 	errors2 "auth-service/core/errors"
-	"auth-service/internal/auth/repositories"
+	"auth-service/internal/auth/repositories/interfaces"
 	"context"
 	"errors"
 	"fmt"
@@ -15,25 +15,25 @@ import (
 const ClaimsKey = "claims"
 
 type AuthMiddleware struct {
-	jwtManager repositories.JWTManager
+	tokenManager interfaces.TokenManager
 }
 
-func NewAuthMiddleware(JWTManager repositories.JWTManager) AuthMiddleware {
+func NewAuthMiddleware(tokenManager interfaces.TokenManager) AuthMiddleware {
 	return AuthMiddleware{
-		jwtManager: JWTManager,
+		tokenManager: tokenManager,
 	}
 }
 
 func GetUserIDFromContext(ctx context.Context) (uuid.UUID, error) {
-	claims := ctx.Value("claims").(*repositories.CustomClaims)
-	userID, err := uuid.Parse(claims.Subject)
+	claims := ctx.Value("claims").(*interfaces.CustomClaims)
+	userID, err := uuid.Parse(claims.RegisteredClaims.Subject)
 	if err != nil {
 		return uuid.UUID{}, err
 	}
 	return userID, nil
 }
 
-func (a *AuthMiddleware) ProcessToken(header string) (*repositories.CustomClaims, error) {
+func (a *AuthMiddleware) ProcessToken(header string) (*interfaces.CustomClaims, error) {
 	// Получить access токен из запроса
 	headerParts := strings.Split(header, " ")
 	if headerParts[0] != "Bearer" {
@@ -42,14 +42,14 @@ func (a *AuthMiddleware) ProcessToken(header string) (*repositories.CustomClaims
 	}
 
 	// Проверка что токен был подписан этой системой и никто его не поменял
-	claims, err := a.jwtManager.Parse(headerParts[1])
+	claims, err := a.tokenManager.Parse(headerParts[1])
 	if err != nil {
 		fmt.Println("ошибка парсинга access токена")
 		return nil, err
 	}
 
 	// Проверка что это именно access токен
-	if isAccess := a.jwtManager.IsAccessToken(claims); !isAccess {
+	if isAccess := a.tokenManager.IsAccessToken(claims); !isAccess {
 		fmt.Println("переданный токен не является access токеном")
 		return nil, errors.New("токен не является access токеном")
 	}
