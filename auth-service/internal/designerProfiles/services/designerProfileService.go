@@ -4,7 +4,7 @@ import (
 	"auth-service/core/domains"
 	"auth-service/core/shared"
 	"auth-service/core/shared/messaging"
-	"auth-service/internal/designerProfiles/repositories"
+	"auth-service/internal/designerProfiles/repositories/interfaces"
 	"context"
 	"encoding/json"
 
@@ -12,12 +12,12 @@ import (
 )
 
 type DesignerProfileService struct {
-	designerProfileRepository repositories.DesignerProfileRepository
+	designerProfileRepository interfaces.DesignerProfileRepository
 	producer                  *messaging.Producer
 }
 
-func NewDesignerProfileService(repository repositories.DesignerProfileRepository, producer *messaging.Producer) DesignerProfileService {
-	return DesignerProfileService{
+func NewDesignerProfileService(repository interfaces.DesignerProfileRepository, producer *messaging.Producer) *DesignerProfileService {
+	return &DesignerProfileService{
 		designerProfileRepository: repository,
 		producer:                  producer,
 	}

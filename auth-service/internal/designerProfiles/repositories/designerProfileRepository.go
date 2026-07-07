@@ -16,8 +16,8 @@ type DesignerProfileRepository struct {
 	connection *pgx.Conn
 }
 
-func NewDesignerProfileRepository(conn *pgx.Conn) DesignerProfileRepository {
-	return DesignerProfileRepository{
+func NewDesignerProfileRepository(conn *pgx.Conn) *DesignerProfileRepository {
+	return &DesignerProfileRepository{
 		connection: conn,
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"auth-service/internal/auth/repositories/interfaces"
 	servicesInterfaces "auth-service/internal/auth/services/interfaces"
 	"auth-service/internal/auth/transport"
-	"auth-service/internal/designerProfiles/services"
+	profileServiceInterfaces "auth-service/internal/designerProfiles/services/interfaces"
 	transport2 "auth-service/internal/designerProfiles/transport"
 	"context"
 	"net/http"
@@ -22,7 +22,7 @@ type ServerManager struct {
 
 func NewServerManager(tokenService servicesInterfaces.TokenService,
 	userService servicesInterfaces.UserService,
-	designerProfileService services.DesignerProfileService,
+	designerProfileService profileServiceInterfaces.DesignerProfileService,
 	tokenManager interfaces.TokenManager,
 	ctx context.Context,
 	logger logs.Logger) ServerManager {

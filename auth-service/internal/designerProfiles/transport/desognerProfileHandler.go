@@ -5,7 +5,7 @@ import (
 	"auth-service/core/errors"
 	logs "auth-service/core/logger"
 	"auth-service/core/middleware"
-	"auth-service/internal/designerProfiles/services"
+	"auth-service/internal/designerProfiles/services/interfaces"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -13,12 +13,12 @@ import (
 )
 
 type HTTPDesignerProfileHandlers struct {
-	designerProfileService services.DesignerProfileService
+	designerProfileService interfaces.DesignerProfileService
 	ctx                    context.Context
 	logger                 logs.Logger
 }
 
-func NewHTTPDesignerProfileHandlers(designerProfileService services.DesignerProfileService,
+func NewHTTPDesignerProfileHandlers(designerProfileService interfaces.DesignerProfileService,
 	ctx context.Context,
 	logger logs.Logger) HTTPDesignerProfileHandlers {
 	return HTTPDesignerProfileHandlers{
