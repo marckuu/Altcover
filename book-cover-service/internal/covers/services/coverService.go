@@ -2,18 +2,18 @@ package services
 
 import (
 	"book-cover-service/core/domains"
-	"book-cover-service/internal/covers/repositories"
+	"book-cover-service/internal/covers/repositories/interfaces"
 	"context"
 
 	"github.com/google/uuid"
 )
 
 type CoverService struct {
-	coverRepository repositories.CoverRepository
+	coverRepository interfaces.CoverRepository
 }
 
-func NewCoverService(repository repositories.CoverRepository) CoverService {
-	return CoverService{
+func NewCoverService(repository interfaces.CoverRepository) *CoverService {
+	return &CoverService{
 		coverRepository: repository,
 	}
 }

@@ -2,20 +2,20 @@ package services
 
 import (
 	"book-cover-service/core/domains"
-	repositories2 "book-cover-service/internal/covers/repositories"
-	"book-cover-service/internal/reactions/repositories"
+	coverRepositoriesInterfaces "book-cover-service/internal/covers/repositories/interfaces"
+	reactionRepositoriesInterfaces "book-cover-service/internal/reactions/repositories/interfaces"
 	"context"
 
 	"github.com/google/uuid"
 )
 
 type FavoritesService struct {
-	FavoritesRepository repositories.FavoritesRepository
-	CoverRepository     repositories2.CoverRepository
+	FavoritesRepository reactionRepositoriesInterfaces.FavoritesRepository
+	CoverRepository     coverRepositoriesInterfaces.CoverRepository
 }
 
-func NewFavoriteService(favoriteRepository repositories.FavoritesRepository, coverRepository repositories2.CoverRepository) FavoritesService {
-	return FavoritesService{
+func NewFavoriteService(favoriteRepository reactionRepositoriesInterfaces.FavoritesRepository, coverRepository coverRepositoriesInterfaces.CoverRepository) *FavoritesService {
+	return &FavoritesService{
 		FavoritesRepository: favoriteRepository,
 		CoverRepository:     coverRepository,
 	}

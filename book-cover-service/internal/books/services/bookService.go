@@ -2,18 +2,18 @@ package services
 
 import (
 	"book-cover-service/core/domains"
-	"book-cover-service/internal/books/repositories"
+	repositoryInterfaces "book-cover-service/internal/books/repositories/interfaces"
 	"context"
 
 	"github.com/google/uuid"
 )
 
 type BookService struct {
-	bookRepository repositories.BookRepository
+	bookRepository repositoryInterfaces.BookRepository
 }
 
-func NewBookService(bookRepository repositories.BookRepository) BookService {
-	return BookService{
+func NewBookService(bookRepository repositoryInterfaces.BookRepository) *BookService {
+	return &BookService{
 		bookRepository: bookRepository,
 	}
 }

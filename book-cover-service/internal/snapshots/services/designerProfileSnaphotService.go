@@ -1,7 +1,7 @@
 package services
 
 import (
-	"book-cover-service/internal/snapshots/repositories"
+	"book-cover-service/internal/snapshots/repositories/interfaces"
 	"book-cover-service/internal/snapshots/transport/dto"
 	"context"
 
@@ -9,11 +9,11 @@ import (
 )
 
 type DesignerProfileSnapshotService struct {
-	designerProfileSnapshotRepository repositories.DesignerProfileSnapshotRepository
+	designerProfileSnapshotRepository interfaces.DesignerProfileSnapshotRepository
 }
 
-func NewDesignerProfileSnapshotService(designerProfileSnapshotRepository repositories.DesignerProfileSnapshotRepository) DesignerProfileSnapshotService {
-	return DesignerProfileSnapshotService{
+func NewDesignerProfileSnapshotService(designerProfileSnapshotRepository interfaces.DesignerProfileSnapshotRepository) *DesignerProfileSnapshotService {
+	return &DesignerProfileSnapshotService{
 		designerProfileSnapshotRepository: designerProfileSnapshotRepository,
 	}
 }

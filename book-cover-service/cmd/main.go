@@ -3,6 +3,7 @@ package main
 import (
 	"book-cover-service/core/db"
 	"book-cover-service/core/logger"
+	"book-cover-service/core/logger/zap"
 	"book-cover-service/core/shared"
 	"book-cover-service/core/shared/messaging"
 	"book-cover-service/internal/auth/repositories"
@@ -33,7 +34,7 @@ func main() {
 		return
 	}
 
-	loggerCover := logs.NewZapLoggerCover(logger)
+	loggerCover := zap.NewZapLoggerCover(logger)
 
 	ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	conn, err := db.CreateConnection(ctx)
@@ -49,11 +50,11 @@ func main() {
 	bookRepository := repositories2.NewBookRepository(conn)
 
 	serverManager := NewServerManager(
-		services3.NewCoverService(coverRepository),
-		services4.NewCoverLikeService(coverLikeRepository),
-		services4.NewFavoriteService(favoritesRepository, coverRepository),
-		services.NewDesignerProfileSnapshotService(designerProfileSnapshotRepository),
-		services2.NewBookService(bookRepository),
+		services3.NewCoverService(&coverRepository),
+		services4.NewCoverLikeService(&coverLikeRepository),
+		services4.NewFavoriteService(&favoritesRepository, &coverRepository),
+		services.NewDesignerProfileSnapshotService(&designerProfileSnapshotRepository),
+		services2.NewBookService(&bookRepository),
 		repositories.NewJWTManager(),
 		ctx,
 		loggerCover,
@@ -62,13 +63,6 @@ func main() {
 	consumer, err := messaging.NewConsumer(addresses, consumerGroupID, topics)
 	if err != nil {
 		fmt.Printf("не удалось создать консюмера, %v", err)
-		return
-	}
-
-	eventHandlers := shared.NewEventHandlers(ctx, designerProfileSnapshotRepository)
-
-	if err = consumer.Consume(eventHandlers.HandleKafkaEvent); err != nil {
-		logger.Error(fmt.Errorf("не удалось запустить консюмер: %w", err).Error())
 		return
 	}
 
@@ -81,6 +75,15 @@ func main() {
 		err = loggerCancel()
 		if err != nil {
 			logger.Error(fmt.Errorf("не удалось закрыть логгер: %w", err).Error())
+			return
+		}
+	}()
+
+	go func() {
+		eventHandlers := shared.NewEventHandlers(ctx, designerProfileSnapshotRepository)
+
+		if err = consumer.Consume(eventHandlers.HandleKafkaEvent); err != nil {
+			logger.Error(fmt.Errorf("не удалось запустить консюмер: %w", err).Error())
 			return
 		}
 	}()

@@ -4,14 +4,15 @@ import (
 	logs "book-cover-service/core/logger"
 	"book-cover-service/core/middleware"
 	"book-cover-service/internal/auth/repositories"
-	services2 "book-cover-service/internal/books/services"
+	bookServicesInterfaces "book-cover-service/internal/books/services/interfaces"
 	"book-cover-service/internal/books/transport"
-	services3 "book-cover-service/internal/covers/services"
+	coverServicesInterfaces "book-cover-service/internal/covers/services/interfaces"
 	transport2 "book-cover-service/internal/covers/transport"
-	services4 "book-cover-service/internal/reactions/services"
+	reactionServicesInterfaces "book-cover-service/internal/reactions/services/interfaces"
 	transport3 "book-cover-service/internal/reactions/transport"
-	"book-cover-service/internal/snapshots/services"
+	designerProfileSnapshotInterfaces "book-cover-service/internal/snapshots/services/interfaces"
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -23,13 +24,14 @@ type ServerManager struct {
 	favoritesHandlers transport3.HTTPFavoritesHandlers
 	bookHandlers      transport.HTTPBookHandlers
 	middleware        middleware.AuthMiddleware
+	logger            logs.Logger
 }
 
-func NewServerManager(coverService services3.CoverService,
-	coverLikeService services4.CoverLikeService,
-	favoritesService services4.FavoritesService,
-	designerProfileSnapshotService services.DesignerProfileSnapshotService,
-	bookService services2.BookService,
+func NewServerManager(coverService coverServicesInterfaces.CoverService,
+	coverLikeService reactionServicesInterfaces.CoverLikeService,
+	favoritesService reactionServicesInterfaces.FavoritesService,
+	designerProfileSnapshotService designerProfileSnapshotInterfaces.DesignerProfileSnapshotService,
+	bookService bookServicesInterfaces.BookService,
 	JWTManager repositories.JWTManager,
 	ctx context.Context,
 	logger logs.Logger) ServerManager {
@@ -39,6 +41,7 @@ func NewServerManager(coverService services3.CoverService,
 		favoritesHandlers: transport3.NewHTTPFavoritesHandlers(favoritesService, ctx, logger),
 		bookHandlers:      transport.NewHTTPBookHandlers(bookService, ctx, logger),
 		middleware:        middleware.NewAuthMiddleware(JWTManager),
+		logger:            logger,
 	}
 }
 
@@ -141,7 +144,7 @@ func (s *ServerManager) StartServer() {
 
 	err := http.ListenAndServe(":9011", router)
 	if err != nil {
-		println("Ошибка при запуске сервера")
+		s.logger.Error(fmt.Errorf("ошибка при запуске сервера, %w", err).Error())
 		return
 	}
 }

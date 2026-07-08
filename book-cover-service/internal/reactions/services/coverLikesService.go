@@ -1,7 +1,7 @@
 package services
 
 import (
-	"book-cover-service/internal/reactions/repositories"
+	reactionRepositoriesInterfaces "book-cover-service/internal/reactions/repositories/interfaces"
 	"context"
 	"errors"
 
@@ -11,11 +11,11 @@ import (
 var errLikeAlreadyExist = errors.New("лайк уже поставлен")
 
 type CoverLikeService struct {
-	coverLikeRepository repositories.CoverLikeRepository
+	coverLikeRepository reactionRepositoriesInterfaces.CoverLikeRepository
 }
 
-func NewCoverLikeService(repository repositories.CoverLikeRepository) CoverLikeService {
-	return CoverLikeService{
+func NewCoverLikeService(repository reactionRepositoriesInterfaces.CoverLikeRepository) *CoverLikeService {
+	return &CoverLikeService{
 		coverLikeRepository: repository,
 	}
 }

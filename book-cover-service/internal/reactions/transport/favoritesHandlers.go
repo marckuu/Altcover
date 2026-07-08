@@ -4,7 +4,7 @@ import (
 	logs "book-cover-service/core/logger"
 	"book-cover-service/core/middleware"
 	tools2 "book-cover-service/core/tools"
-	"book-cover-service/internal/reactions/services"
+	reactionServicesInterfaces "book-cover-service/internal/reactions/services/interfaces"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -15,12 +15,12 @@ import (
 )
 
 type HTTPFavoritesHandlers struct {
-	favoritesService services.FavoritesService
+	favoritesService reactionServicesInterfaces.FavoritesService
 	ctx              context.Context
 	logger           logs.Logger
 }
 
-func NewHTTPFavoritesHandlers(favoriteService services.FavoritesService, ctx context.Context, logger logs.Logger) HTTPFavoritesHandlers {
+func NewHTTPFavoritesHandlers(favoriteService reactionServicesInterfaces.FavoritesService, ctx context.Context, logger logs.Logger) HTTPFavoritesHandlers {
 	return HTTPFavoritesHandlers{
 		favoritesService: favoriteService,
 		ctx:              ctx,

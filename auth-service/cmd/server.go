@@ -9,6 +9,7 @@ import (
 	profileServiceInterfaces "auth-service/internal/designerProfiles/services/interfaces"
 	transport2 "auth-service/internal/designerProfiles/transport"
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -18,6 +19,7 @@ type ServerManager struct {
 	authHandlers            transport.HTTPAuthHandlers
 	designerProfileHandlers transport2.HTTPDesignerProfileHandlers
 	middleware              middleware.AuthMiddleware
+	logger                  logs.Logger
 }
 
 func NewServerManager(tokenService servicesInterfaces.TokenService,
@@ -30,6 +32,7 @@ func NewServerManager(tokenService servicesInterfaces.TokenService,
 		authHandlers:            transport.NewHTTPAuthHandler(tokenService, tokenManager, userService, ctx, logger),
 		designerProfileHandlers: transport2.NewHTTPDesignerProfileHandlers(designerProfileService, ctx, logger),
 		middleware:              middleware.NewAuthMiddleware(tokenManager),
+		logger:                  logger,
 	}
 }
 
@@ -94,7 +97,7 @@ func (s *ServerManager) StartServer() {
 
 	err := http.ListenAndServe(":9011", router)
 	if err != nil {
-		println("Ошибка при запуске сервера")
+		s.logger.Error(fmt.Errorf("ошибка при запуске сервера, %w", err).Error())
 		return
 	}
 }

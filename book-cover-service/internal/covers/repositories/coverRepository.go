@@ -44,9 +44,9 @@ func (c *CoverRepository) AddCover(ctx context.Context, cover domains.Cover) err
 
 func (c *CoverRepository) GetCoverByID(ctx context.Context, coverID uuid.UUID) (domains.Cover, error) {
 	query := `
-	SELECT c.id, c.title, c.description, c.images_keys, c.status, c.user_id, s.designer_nickname, s.designer_avatar_key, c.book_id
+	SELECT c.id, c.title, c.description, c.images_keys, c.status, c.user_id, s.nickname, s.avatar_key, c.book_id
 	FROM cover c
-	INNER JOIN designer_profiles_snapshot s
+	INNER JOIN designer_profile_snapshot s
 		ON c.user_id=s.user_id
 	WHERE c.id = $1;
 `
@@ -73,9 +73,9 @@ func (c *CoverRepository) GetCoverByID(ctx context.Context, coverID uuid.UUID) (
 
 func (c *CoverRepository) GetCovers(ctx context.Context, offset int, limit int) ([]domains.Cover, error) {
 	query := `
-	SELECT c.id, c.title, c.description, c.images_keys, c.status, c.user_id, s.designer_nickname, s.designer_avatar_key, c.book_id
+	SELECT c.id, c.title, c.description, c.images_keys, c.status, c.user_id, s.nickname, s.avatar_key, c.book_id
 	FROM cover c
-	INNER JOIN designer_profiles_snapshot s
+	INNER JOIN designer_profile_snapshot s
 		ON c.user_id=s.user_id
 	OFFSET $1
 	LIMIT $2;
@@ -122,16 +122,14 @@ func (c *CoverRepository) UpdateCover(ctx context.Context, cover domains.Cover) 
 	SET title = $1, 
 	    description = $2,  
 	    images_keys = $3, 
-	    status = $4, 
-	    book_id = $7
-	WHERE id = $8;
+	    status = $4
+	WHERE id = $5;
 `
 	tag, err := c.connection.Exec(ctx, query,
 		cover.Title,
 		cover.Description,
 		cover.ImagesKeys,
 		cover.Status,
-		cover.BookID,
 		cover.ID)
 
 	if err != nil {
@@ -164,9 +162,9 @@ func (c *CoverRepository) DeleteCover(ctx context.Context, coverID uuid.UUID) er
 
 func (c *CoverRepository) GetCoversByUserID(ctx context.Context, offset int, limit int, userID uuid.UUID) ([]domains.Cover, error) {
 	query := `
-	SELECT c.id, c.title, c.description, c.images_keys, c.status, c.user_id, s.designer_nickname, s.designer_avatar_key, c.book_id
+	SELECT c.id, c.title, c.description, c.images_keys, c.status, c.user_id, s.nickname, s.avatar_key, c.book_id
 	FROM cover c
-	INNER JOIN designer_profiles_snapshot s
+	INNER JOIN designer_profile_snapshot s
 		ON c.user_id=s.user_id
 	WHERE c.user_id = $1
 	OFFSET $2
@@ -210,9 +208,9 @@ func (c *CoverRepository) GetCoversByUserID(ctx context.Context, offset int, lim
 
 func (c *CoverRepository) GetCoversByIDs(ctx context.Context, coversIDs []uuid.UUID) ([]domains.Cover, error) {
 	query := `
-	SELECT c.id, c.title, c.description, c.images_keys, c.status, c.user_id, s.designer_nickname, s.designer_avatar_key, c.book_id
+	SELECT c.id, c.title, c.description, c.images_keys, c.status, c.user_id, s.nickname, s.avatar_key, c.book_id
 	FROM cover c
-	INNER JOIN designer_profiles_snapshot s
+	INNER JOIN designer_profile_snapshot s
 		ON c.user_id=s.user_id
 	WHERE c.id = ANY($1);
 `
@@ -253,14 +251,14 @@ func (c *CoverRepository) GetCoversByIDs(ctx context.Context, coversIDs []uuid.U
 
 func (c *CoverRepository) GetMostLikedCoversForNDays(ctx context.Context, daysNumber int, offset int, limit int) ([]domains.Cover, error) {
 	query := `
-	SELECT c.id, c.title, c.description, c.images_keys, c.status, c.book_id, c.user_id, s.designer_nickname, s.designer_avatar_key
+	SELECT c.id, c.title, c.description, c.images_keys, c.status, c.book_id, c.user_id, s.nickname, s.avatar_key
 	FROM cover c
 	INNER JOIN designer_profile_snapshot s
 		ON c.user_id=s.user_id
 	INNER JOIN cover_like l
 		ON c.id=l.cover_id
 		AND l.created_at >= now() - ($1 *interval '1 day')
-	GROUP BY c.id, c.title, c.description, c.images_keys, c.status, c.book_id, c.user_id, c.designer_nickname, c.designer_avatar_key
+	GROUP BY c.id, c.title, c.description, c.images_keys, c.status, c.book_id, c.user_id, s.nickname, s.avatar_key
 	ORDER BY COUNT(*) DESC
 	OFFSET $2
 	LIMIT $3;
@@ -304,9 +302,9 @@ func (c *CoverRepository) GetMostLikedCoversForNDays(ctx context.Context, daysNu
 
 func (c *CoverRepository) GetCoversByBook(ctx context.Context, bookID uuid.UUID, offset int, limit int) ([]domains.Cover, error) {
 	query := `
-	SELECT c.id, c.title, c.description, c.images_keys, c.status, c.user_id, s.designer_nickname, s.designer_avatar_key, c.book_id
+	SELECT c.id, c.title, c.description, c.images_keys, c.status, c.user_id, s.nickname, s.avatar_key, c.book_id
 	FROM cover c
-	INNER JOIN designer_profiles_snapshot s
+	INNER JOIN designer_profile_snapshot s
 		ON c.user_id=s.user_id
 	WHERE c.book_id = $1
 	OFFSET $2

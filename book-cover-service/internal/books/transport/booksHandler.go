@@ -4,7 +4,7 @@ import (
 	"book-cover-service/core/domains"
 	logs "book-cover-service/core/logger"
 	"book-cover-service/core/tools"
-	"book-cover-service/internal/books/services"
+	serviceInterfaces "book-cover-service/internal/books/services/interfaces"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -15,12 +15,12 @@ import (
 )
 
 type HTTPBookHandlers struct {
-	bookService services.BookService
+	bookService serviceInterfaces.BookService
 	ctx         context.Context
 	logger      logs.Logger
 }
 
-func NewHTTPBookHandlers(bookService services.BookService, ctx context.Context, logger logs.Logger) HTTPBookHandlers {
+func NewHTTPBookHandlers(bookService serviceInterfaces.BookService, ctx context.Context, logger logs.Logger) HTTPBookHandlers {
 	return HTTPBookHandlers{
 		bookService: bookService,
 		ctx:         ctx,

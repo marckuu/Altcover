@@ -4,7 +4,7 @@ import (
 	logs "book-cover-service/core/logger"
 	"book-cover-service/core/middleware"
 	"book-cover-service/core/tools"
-	"book-cover-service/internal/reactions/services"
+	reactionServicesInterfaces "book-cover-service/internal/reactions/services/interfaces"
 	"context"
 	"errors"
 	"fmt"
@@ -15,12 +15,12 @@ import (
 )
 
 type HTTPCoverLikeHandlers struct {
-	coverLikeService services.CoverLikeService
+	coverLikeService reactionServicesInterfaces.CoverLikeService
 	ctx              context.Context
 	logger           logs.Logger
 }
 
-func NewCoverLikeHandlers(coverLikeService services.CoverLikeService, ctx context.Context, logger logs.Logger) HTTPCoverLikeHandlers {
+func NewCoverLikeHandlers(coverLikeService reactionServicesInterfaces.CoverLikeService, ctx context.Context, logger logs.Logger) HTTPCoverLikeHandlers {
 	return HTTPCoverLikeHandlers{
 		coverLikeService: coverLikeService,
 		ctx:              ctx,

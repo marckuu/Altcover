@@ -5,8 +5,8 @@ import (
 	logs "book-cover-service/core/logger"
 	"book-cover-service/core/middleware"
 	tools2 "book-cover-service/core/tools"
-	services2 "book-cover-service/internal/covers/services"
-	"book-cover-service/internal/snapshots/services"
+	serviceInterfaces "book-cover-service/internal/covers/services/interfaces"
+	designerProfileSnapshotServiceInterfaces "book-cover-service/internal/snapshots/services/interfaces"
 	"context"
 	"encoding/json"
 	"errors"
@@ -18,17 +18,16 @@ import (
 )
 
 var mostLikedInterval = 3
-var getProfilePath = "/designer_profile/me"
 
 type HTTPCoverHandlers struct {
-	coverService                   services2.CoverService
-	designerProfileSnapshotService services.DesignerProfileSnapshotService
+	coverService                   serviceInterfaces.CoverService
+	designerProfileSnapshotService designerProfileSnapshotServiceInterfaces.DesignerProfileSnapshotService
 	ctx                            context.Context
 	logger                         logs.Logger
 }
 
-func NewCoverHandlers(coverService services2.CoverService,
-	designerProfileSnapshotService services.DesignerProfileSnapshotService,
+func NewCoverHandlers(coverService serviceInterfaces.CoverService,
+	designerProfileSnapshotService designerProfileSnapshotServiceInterfaces.DesignerProfileSnapshotService,
 	ctx context.Context,
 	logger logs.Logger) HTTPCoverHandlers {
 	return HTTPCoverHandlers{
@@ -131,6 +130,10 @@ func (c *HTTPCoverHandlers) HandleUpdateCover(w http.ResponseWriter, r *http.Req
 		tools2.SendErrorResponse(w, errors.New("ошибка при получении новой обложки из запроса"), http.StatusBadRequest)
 		return
 	}
+
+	newCover.ID = coverID
+	newCover.UserID = userID
+	newCover.BookID = cover.BookID
 
 	if err = c.coverService.UpdateCover(c.ctx, newCover); err != nil {
 		c.logger.Error(fmt.Errorf("ошибка при обновлении обложки: %w", err).Error())
