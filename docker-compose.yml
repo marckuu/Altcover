@@ -61,6 +61,8 @@ services:
       KAFKA_BROKER2_URL: ${KAFKA_BROKER2_URL}
       KAFKA_BROKER3_URL: ${KAFKA_BROKER3_URL}
       PROFILES_TOPIC_NAME: ${PROFILES_TOPIC_NAME}
+      JWT_KEY: ${JWT_KEY}
+      ISSUER: "auth-service"
     networks:
       - external-net
       - kafka-net
@@ -82,6 +84,8 @@ services:
       KAFKA_BROKER3_URL: ${KAFKA_BROKER3_URL}
       PROFILES_TOPIC_NAME: ${PROFILES_TOPIC_NAME}
       CONSUMER_GROUP_ID: ${CONSUMER_GROUP_ID}
+      JWT_KEY: ${JWT_KEY}
+      ISSUER: "book-cover-service"
     networks:
       - external-net
       - kafka-net

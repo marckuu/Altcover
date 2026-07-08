@@ -2,14 +2,15 @@ package repositories
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
-var issuer = "hostUrl"        // Заменить на использование из env
-var key = []byte("KeyString") // Заменить на использование из env
+var issuer = os.Getenv("ISSUER")
+var key = []byte(os.Getenv("JWT_KEY"))
 var signingMethod = jwt.SigningMethodHS256
 
 type JwtClaims struct {
