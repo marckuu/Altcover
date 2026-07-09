@@ -15,6 +15,12 @@ type Producer struct {
 func NewProducer(brokerAddresses []string, topic string) (*Producer, error) {
 	config := sarama.NewConfig()
 
+	config.Version = sarama.V3_6_0_0
+	config.Producer.Return.Successes = true
+	config.Producer.RequiredAcks = sarama.WaitForAll
+	config.Producer.Retry.Max = 5
+	config.Producer.Retry.Backoff = 100 * time.Millisecond
+
 	p, err := sarama.NewSyncProducer(brokerAddresses, config)
 	if err != nil {
 		return &Producer{}, fmt.Errorf("ошибка при создании продюсера: %w", err)
@@ -29,12 +35,7 @@ func NewProducer(brokerAddresses []string, topic string) (*Producer, error) {
 func (p *Producer) Produce(message []byte) error {
 	prodMsg := &sarama.ProducerMessage{
 		Topic:     p.topic,
-		Key:       nil,
 		Value:     sarama.ByteEncoder(message),
-		Headers:   nil,
-		Metadata:  nil,
-		Offset:    0,
-		Partition: 0,
 		Timestamp: time.Time{},
 	}
 
