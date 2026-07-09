@@ -7,6 +7,7 @@ import (
 	"auth-service/internal/designerProfiles/repositories/interfaces"
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -23,8 +24,50 @@ func NewDesignerProfileService(repository interfaces.DesignerProfileRepository, 
 	}
 }
 
-func (d *DesignerProfileService) CreateDesignerProfile(ctx context.Context, designerProfile domains.DesignerProfile) error {
-	if err := d.designerProfileRepository.AddDesignerProfile(ctx, designerProfile); err != nil {
+func (d *DesignerProfileService) GetProfileByUserID(ctx context.Context, userID uuid.UUID) (domains.DesignerProfile, error) {
+	designerProfile, err := d.designerProfileRepository.GetDesignerProfileByUserID(ctx, userID)
+	if err != nil {
+		return domains.DesignerProfile{}, err
+	}
+
+	return designerProfile, nil
+}
+
+func (d *DesignerProfileService) DeleteDesignerProfile(ctx context.Context, profileID uuid.UUID) error {
+	if err := d.designerProfileRepository.DeleteDesignerProfile(ctx, profileID); err != nil {
+		return err
+	}
+
+	payload, err := json.Marshal(domains.DesignerProfile{
+		ID: profileID,
+	})
+	if err != nil {
+		return err
+	}
+
+	event := shared.NewKafkaEvent(shared.DesignerProfileDeleted, payload)
+
+	message, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+
+	if err = d.producer.Produce(message); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *DesignerProfileService) CreateDesignerProfileToUser(ctx context.Context, userID uuid.UUID, designerProfile domains.DesignerProfile) error {
+	_, err := d.designerProfileRepository.GetDesignerProfileByUserID(ctx, userID)
+	if err == nil {
+		return fmt.Errorf("профиль дизайнера уже существует: %w", err)
+	}
+
+	designerProfile.UserID = userID
+
+	if err = d.designerProfileRepository.AddDesignerProfile(ctx, designerProfile); err != nil {
 		return err
 	}
 
@@ -47,16 +90,19 @@ func (d *DesignerProfileService) CreateDesignerProfile(ctx context.Context, desi
 	return nil
 }
 
-func (d *DesignerProfileService) UpdateDesignerProfile(ctx context.Context, designerProfile domains.DesignerProfile) error {
+func (d *DesignerProfileService) UpdateDesignerProfileToUser(ctx context.Context, userID uuid.UUID, newDesignerProfile domains.DesignerProfile) error {
+	oldDesignerProfile, err := d.designerProfileRepository.GetDesignerProfileByUserID(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("ошибка получения профиля дизайнера: %w", err)
+	}
 
-	// 1. Validate
+	newDesignerProfile.ID = oldDesignerProfile.ID
 
-	// 2. repo.Update()
-	if err := d.designerProfileRepository.UpdateDesignerProfile(ctx, designerProfile); err != nil {
+	if err = d.designerProfileRepository.UpdateDesignerProfile(ctx, newDesignerProfile); err != nil {
 		return err
 	}
 
-	payload, err := json.Marshal(designerProfile)
+	payload, err := json.Marshal(newDesignerProfile)
 	if err != nil {
 		return err
 	}
@@ -75,22 +121,18 @@ func (d *DesignerProfileService) UpdateDesignerProfile(ctx context.Context, desi
 	return nil
 }
 
-func (d *DesignerProfileService) GetProfileByUserID(ctx context.Context, userID uuid.UUID) (domains.DesignerProfile, error) {
+func (d *DesignerProfileService) DeleteDesignerProfileToUser(ctx context.Context, userID uuid.UUID) error {
 	designerProfile, err := d.designerProfileRepository.GetDesignerProfileByUserID(ctx, userID)
 	if err != nil {
-		return domains.DesignerProfile{}, err
+		return fmt.Errorf("не удалось получить профиль дизайнера: %w", err)
 	}
 
-	return designerProfile, nil
-}
-
-func (d *DesignerProfileService) DeleteDesignerProfile(ctx context.Context, profileID uuid.UUID) error {
-	if err := d.designerProfileRepository.DeleteDesignerProfile(ctx, profileID); err != nil {
-		return err
+	if err = d.designerProfileRepository.DeleteDesignerProfile(ctx, designerProfile.ID); err != nil {
+		return fmt.Errorf("не удалось удалить профиль: %w", err)
 	}
 
 	payload, err := json.Marshal(domains.DesignerProfile{
-		ID: profileID,
+		ID: designerProfile.ID,
 	})
 	if err != nil {
 		return err

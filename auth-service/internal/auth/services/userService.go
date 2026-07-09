@@ -2,74 +2,123 @@ package services
 
 import (
 	"auth-service/core/domains"
+	"auth-service/core/enums"
 	"auth-service/core/shared/messaging"
-	"auth-service/internal/auth/repositories/interfaces"
+	authRepositoryInterfaces "auth-service/internal/auth/repositories/interfaces"
+	authServicesInterfaces "auth-service/internal/auth/services/interfaces"
+	"auth-service/internal/auth/transport/dto"
 	"context"
 
+	"fmt"
+
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
-	userRepository interfaces.UserRepository
+	userRepository authRepositoryInterfaces.UserRepository
+	tokenManager   authRepositoryInterfaces.TokenManager
+	tokenService   authServicesInterfaces.TokenService
 	producer       *messaging.Producer
 }
 
-func NewUserService(repository interfaces.UserRepository, producer *messaging.Producer) *UserService {
+func NewUserService(repository authRepositoryInterfaces.UserRepository,
+	producer *messaging.Producer,
+	tokenManager authRepositoryInterfaces.TokenManager,
+	tokenService authServicesInterfaces.TokenService) *UserService {
 	return &UserService{
 		userRepository: repository,
+		tokenManager:   tokenManager,
+		tokenService:   tokenService,
 		producer:       producer,
 	}
 }
 
-func (u *UserService) AddUser(ctx context.Context, user domains.User) error {
-	if err := u.userRepository.AddUser(ctx, user); err != nil {
-		return err
+func (u *UserService) Register(ctx context.Context, loginRequest dto.LoginRequest) error {
+	_, err := u.userRepository.GetUserByNickname(ctx, loginRequest.Nickname)
+	if err == nil {
+		return fmt.Errorf("пользователь уже существует: %w", err)
 	}
+
+	PasswordHash, err := bcrypt.GenerateFromPassword([]byte(loginRequest.Password), 10)
+	if err != nil {
+		return fmt.Errorf("ошибка получения хэша пароля: %w", err)
+	}
+
+	var user domains.User
+
+	user.Role = enums.User
+	user.Nickname = loginRequest.Nickname
+	user.PasswordHash = PasswordHash
+
+	if err = u.userRepository.AddUser(ctx, user); err != nil {
+		return fmt.Errorf("ошибка добавления нового пользователя: %w", err)
+	}
+
 	return nil
+
 }
 
-func (u *UserService) GetUser() domains.User {
-	// 1. Validate
-
-	// 2. repo.Get()
-
-	return domains.User{}
-}
-
-func (u *UserService) UpdateUser(user domains.User) {
-	// 1. Validate
-
-	// 2. repo.Update()
-}
-
-func (u *UserService) DeleteUser(userID pgtype.UUID) {
-	// 1. Validate
-
-	// 2. repo.Update()
-}
-
-func (u *UserService) GetUserIDFromTokenClaims(claims *interfaces.CustomClaims) (uuid.UUID, error) {
-	userID := claims.RegisteredClaims.Subject
-	userIDConverted, err := uuid.Parse(userID)
+func (u *UserService) Login(ctx context.Context, loginRequest dto.LoginRequest) (*authRepositoryInterfaces.TokenPair, error) {
+	user, err := u.userRepository.GetUserByNickname(ctx, loginRequest.Nickname)
 	if err != nil {
-		return uuid.UUID{}, err
+		return &authRepositoryInterfaces.TokenPair{}, fmt.Errorf("пользователь не найден: %w", err)
 	}
-	return userIDConverted, nil
+
+	if err = bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(loginRequest.Password)); err != nil {
+		return &authRepositoryInterfaces.TokenPair{}, fmt.Errorf("неверный пароль: %w", err)
+	}
+
+	tokenPair, err := u.tokenManager.GenerateTokenPair(user.ID)
+	if err != nil {
+		return &authRepositoryInterfaces.TokenPair{}, fmt.Errorf("не удалось сгенерировать jwtCovers токены: %w", err)
+	}
+
+	if err = u.tokenService.AddRefreshToken(ctx, tokenPair.RefreshToken); err != nil {
+		return &authRepositoryInterfaces.TokenPair{}, fmt.Errorf("не удалось сохранить refresh токен: %w", err)
+	}
+
+	return tokenPair, nil
+
 }
 
-func (u *UserService) GetUserByID(ctx context.Context, userID uuid.UUID) (domains.User, error) {
-	user, err := u.userRepository.GetUserByID(ctx, userID)
+func (u *UserService) Refresh(ctx context.Context, cookieValue string) (string, error) {
+	claims, err := u.tokenManager.Parse(cookieValue)
 	if err != nil {
-		return domains.User{}, err
+		return "", fmt.Errorf("неккоректный refresh токен: %w", err)
 	}
-	return user, nil
+
+	isRevoked, err := u.tokenService.IsTokenRevoked(ctx, cookieValue)
+	if err != nil {
+		return "", fmt.Errorf("не удалось проверить токен: %w", err)
+	}
+
+	if isRevoked {
+		return "", fmt.Errorf("переданный refresh токен отозван: %w", err)
+	}
+
+	userID, err := uuid.Parse(claims.RegisteredClaims.Subject)
+	if err != nil {
+		return "", fmt.Errorf("ошибка получения id пользователя из refresh токена: %w", err)
+	}
+
+	accessToken, err := u.tokenManager.GenerateAccessToken(userID)
+	if err != nil {
+		return "", fmt.Errorf("не удалось сгенерировать access токен: %w", err)
+	}
+
+	return accessToken, nil
 }
 
-func (u *UserService) GetUserByNickname(ctx context.Context, nickname string) (domains.User, error) {
-	user, err := u.userRepository.GetUserByNickname(ctx, nickname)
+func (u *UserService) Logout(ctx context.Context, cookieValue string) error {
+	_, err := u.tokenManager.Parse(cookieValue)
 	if err != nil {
-		return domains.User{}, err
+		return fmt.Errorf("неккоректный refresh токен: %w", err)
 	}
-	return user, nil
+
+	if err = u.tokenService.DeleteRefreshToken(ctx, cookieValue); err != nil {
+		return fmt.Errorf("ошибка удаления refresh токена из базы: %w", err)
+	}
+
+	return nil
 }

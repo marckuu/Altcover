@@ -8,8 +8,8 @@ import (
 )
 
 type DesignerProfileService interface {
-	DeleteDesignerProfile(ctx context.Context, profileID uuid.UUID) error
+	CreateDesignerProfileToUser(ctx context.Context, userID uuid.UUID, designerProfile domains.DesignerProfile) error
+	UpdateDesignerProfileToUser(ctx context.Context, userID uuid.UUID, newDesignerProfile domains.DesignerProfile) error
+	DeleteDesignerProfileToUser(ctx context.Context, userID uuid.UUID) error
 	GetProfileByUserID(ctx context.Context, userID uuid.UUID) (domains.DesignerProfile, error)
-	UpdateDesignerProfile(ctx context.Context, designerProfile domains.DesignerProfile) error
-	CreateDesignerProfile(ctx context.Context, designerProfile domains.DesignerProfile) error
 }

@@ -56,11 +56,16 @@ func main() {
 		return
 	}
 
+	tokenService := services2.NewTokenService(repositories.NewTokenRepository(conn), producer)
+	jwtManagerCover := jwtCovers.NewJwtManagerCover(repositories.JwtManager{})
+	userService := services2.NewUserService(repositories.NewUserRepository(conn), producer, jwtManagerCover, tokenService)
+	designerProfileService := services.NewDesignerProfileService(repositories2.NewDesignerProfileRepository(conn), producer)
+
 	serverManager := NewServerManager(
-		services2.NewTokenService(repositories.NewTokenRepository(conn), producer),
-		services2.NewUserService(repositories.NewUserRepository(conn), producer),
-		services.NewDesignerProfileService(repositories2.NewDesignerProfileRepository(conn), producer),
-		jwtCovers.NewJwtManagerCover(repositories.JwtManager{}),
+		tokenService,
+		userService,
+		designerProfileService,
+		jwtManagerCover,
 		ctx,
 		loggerCover,
 	)
