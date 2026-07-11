@@ -32,7 +32,7 @@ func (f *HTTPFavoritesHandlers) HandleAddCoverToFavorites(w http.ResponseWriter,
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
 		f.logger.Error(fmt.Errorf("не удалось получить ID пользователя из токена: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusBadRequest)
+		tools2.SendErrorResponse(w, fmt.Errorf("не удалось получить ID пользователя из токена: %w", err), http.StatusBadRequest)
 		return
 	}
 
@@ -40,13 +40,13 @@ func (f *HTTPFavoritesHandlers) HandleAddCoverToFavorites(w http.ResponseWriter,
 	coverID, err := uuid.Parse(coverIDRaw)
 	if err != nil {
 		f.logger.Error(fmt.Errorf("ошибка преобразования строки в uuid: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusInternalServerError)
+		tools2.SendErrorResponse(w, fmt.Errorf("ошибка преобразования строки в uuid: %w", err), http.StatusInternalServerError)
 		return
 	}
 
 	if err = f.favoritesService.AddCoverToFavorites(f.ctx, userID, coverID); err != nil {
 		f.logger.Error(fmt.Errorf("ошибка добавления обложки в избранное: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusInternalServerError)
+		tools2.SendErrorResponse(w, fmt.Errorf("ошибка добавления обложки в избранное: %w", err), http.StatusInternalServerError)
 		return
 	}
 }
@@ -62,18 +62,16 @@ func (f *HTTPFavoritesHandlers) HandleGetMyFavoriteCovers(w http.ResponseWriter,
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
 		f.logger.Error(fmt.Errorf("не удалось получить ID пользователя из токена: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusBadRequest)
+		tools2.SendErrorResponse(w, fmt.Errorf("не удалось получить ID пользователя из токена: %w", err), http.StatusBadRequest)
 		return
 	}
 
 	covers, err := f.favoritesService.GetFavoriteCovers(f.ctx, userID, int(offset), int(limit))
 	if err != nil {
 		f.logger.Error(fmt.Errorf("ошибка при получении избранных обложек: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusInternalServerError)
+		tools2.SendErrorResponse(w, fmt.Errorf("ошибка при получении избранных обложек: %w", err), http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 
 	if err = json.NewEncoder(w).Encode(covers); err != nil {
 		f.logger.Error(fmt.Errorf("ошибка при получении избранных обложек: %w", err).Error())

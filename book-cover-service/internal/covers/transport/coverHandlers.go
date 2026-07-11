@@ -88,8 +88,6 @@ func (c *HTTPCoverHandlers) HandleGetCoversByDesignerUserID(w http.ResponseWrite
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-
 	if err = json.NewEncoder(w).Encode(covers); err != nil {
 		c.logger.Error(fmt.Errorf("ошибка при записи ответа с полученными обложками: %w", err).Error())
 	}
@@ -111,37 +109,20 @@ func (c *HTTPCoverHandlers) HandleUpdateCover(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	cover, err := c.coverService.GetCoverByID(c.ctx, coverID)
-	if err != nil {
-		c.logger.Error(fmt.Errorf("ошибка при проверке авторства: %w", err).Error())
-		return
-	}
-
-	if cover.UserID != userID {
-		c.logger.Error(fmt.Errorf("дизайнер не является автором данной обложки: %w", err).Error())
-		tools2.SendErrorResponse(w, errors.New("дизайнер не является автором обложки"), http.StatusConflict)
-		return
-	}
-
 	var newCover domains.Cover
 
 	if err = json.NewDecoder(r.Body).Decode(&newCover); err != nil {
-		c.logger.Error(fmt.Errorf("ошибка при получении новой обложки из запроса: %w", err).Error())
-		tools2.SendErrorResponse(w, errors.New("ошибка при получении новой обложки из запроса"), http.StatusBadRequest)
+		c.logger.Error(fmt.Errorf("ошибка при чтении тела запроса: %w", err).Error())
+		tools2.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	newCover.ID = coverID
-	newCover.UserID = userID
-	newCover.BookID = cover.BookID
-
-	if err = c.coverService.UpdateCover(c.ctx, newCover); err != nil {
-		c.logger.Error(fmt.Errorf("ошибка при обновлении обложки: %w", err).Error())
-		tools2.SendErrorResponse(w, errors.New("ошибка при обновлении обложки"), http.StatusInternalServerError)
+	newCover, err = c.coverService.UpdateCover(c.ctx, coverID, userID, newCover)
+	if err != nil {
+		c.logger.Error(err.Error())
+		tools2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 
 	if err = json.NewEncoder(w).Encode(newCover); err != nil {
 		c.logger.Error(fmt.Errorf("ошибка при записи ответа с полученными обложками: %w", err).Error())
@@ -164,8 +145,6 @@ func (c *HTTPCoverHandlers) HandleGetCoverByID(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-
 	if err = json.NewEncoder(w).Encode(cover); err != nil {
 		c.logger.Error(fmt.Errorf("ошибка при записи ответа с полученной обложкой: %w", err).Error())
 	}
@@ -187,27 +166,16 @@ func (c *HTTPCoverHandlers) HandleAddCover(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	cover.UserID = userID
-
-	profileSnapshot, err := c.designerProfileSnapshotService.GetDesignerProfileSnapshotByUserID(c.ctx, userID)
+	cover, err = c.coverService.AddCover(c.ctx, userID, cover)
 	if err != nil {
-		c.logger.Error(fmt.Errorf("не удалось получить профиль пользователя: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	cover.DesignerNickname = profileSnapshot.Nickname
-	cover.DesignerAvatarKey = profileSnapshot.AvatarKey
-
-	// Провалидировать обложку
-
-	if err = c.coverService.AddCover(c.ctx, cover); err != nil {
-		c.logger.Error(fmt.Errorf("ошибка при сохранении обложки: %w", err).Error())
+		c.logger.Error(err.Error())
 		tools2.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	// Вернуть в ответ добавленную обложку
+	if err = json.NewEncoder(w).Encode(cover); err != nil {
+		c.logger.Error(fmt.Errorf("ошибка при записи ответа с созданной обложкой: %w", err).Error())
+	}
 }
 
 func (c *HTTPCoverHandlers) HandleGetFeedCovers(w http.ResponseWriter, r *http.Request) {
@@ -223,8 +191,6 @@ func (c *HTTPCoverHandlers) HandleGetFeedCovers(w http.ResponseWriter, r *http.R
 		tools2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 
 	if err = json.NewEncoder(w).Encode(covers); err != nil {
 		c.logger.Error(fmt.Errorf("не удалось отправить ответ со списком популярных обложек: %w", err).Error())
