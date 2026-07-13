@@ -1,0 +1,8 @@
+packages:
+  auth-service/internal/auth/repositories/interfaces:
+    interfaces:
+      TokenRepository:
+      UserRepository:
+  auth-service/core/shared/messaging/interfaces:
+    interfaces:
+      Producer:

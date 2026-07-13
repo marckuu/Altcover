@@ -2,7 +2,7 @@ package services
 
 import (
 	globalErrors "auth-service/core/errors"
-	"auth-service/core/shared/messaging"
+	messagingInterfaces "auth-service/core/shared/messaging/interfaces"
 	"auth-service/core/tools"
 	"auth-service/internal/auth/repositories/interfaces"
 	"context"
@@ -12,10 +12,10 @@ import (
 
 type TokenService struct {
 	tokenRepository interfaces.TokenRepository
-	producer        *messaging.Producer
+	producer        messagingInterfaces.Producer
 }
 
-func NewTokenService(tokenRepository interfaces.TokenRepository, producer *messaging.Producer) *TokenService {
+func NewTokenService(tokenRepository interfaces.TokenRepository, producer messagingInterfaces.Producer) *TokenService {
 	return &TokenService{
 		tokenRepository: tokenRepository,
 		producer:        producer,
