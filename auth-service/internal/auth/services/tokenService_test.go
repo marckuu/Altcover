@@ -8,11 +8,15 @@ import (
 	"auth-service/internal/auth/repositories/interfaces"
 	"context"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type TestTable struct {
+	testName     string
 	TokenService *TokenService
-	Result       bool
+	Expected     bool
 }
 
 func TestAddRefreshToken(t *testing.T) {
@@ -35,9 +39,8 @@ func TestAddRefreshToken(t *testing.T) {
 		producer:        producer,
 	}
 
-	if err = s.AddRefreshToken(ctx, token); err != nil {
-		t.Errorf("ошибка добавления refresh токена:, %d", err)
-	}
+	err = s.AddRefreshToken(ctx, token)
+	assert.NoError(t, err)
 }
 
 func TestDeleteRefreshToken(t *testing.T) {
@@ -60,10 +63,8 @@ func TestDeleteRefreshToken(t *testing.T) {
 		producer:        producer,
 	}
 
-	if err = s.DeleteRefreshToken(ctx, token); err != nil {
-		t.Errorf("ошибка удаления refresh токена: %v", err)
-	}
-
+	err = s.DeleteRefreshToken(ctx, token)
+	assert.NoError(t, err)
 }
 
 func TestIsTokenRevoked(t *testing.T) {
@@ -89,6 +90,7 @@ func TestIsTokenRevoked(t *testing.T) {
 
 	testTable := []TestTable{
 		{
+			"true",
 			&TokenService{
 				tokenRepository: tokenRepositoryTrue,
 				producer:        producer,
@@ -96,6 +98,7 @@ func TestIsTokenRevoked(t *testing.T) {
 			true,
 		},
 		{
+			"false",
 			&TokenService{
 				tokenRepository: tokenRepositoryFalse,
 				producer:        producer,
@@ -105,13 +108,11 @@ func TestIsTokenRevoked(t *testing.T) {
 	}
 
 	for _, tt := range testTable {
-		revoked, err := tt.TokenService.IsTokenRevoked(ctx, token)
-		if err != nil {
-			t.Errorf("ошибка определения отозван ли токен: %v", err)
-		}
+		t.Run(tt.testName, func(t *testing.T) {
+			revoked, err := tt.TokenService.IsTokenRevoked(ctx, token)
 
-		if revoked != tt.Result {
-			t.Errorf("неккоректный результат, revoked: %v", err)
-		}
+			require.NoError(t, err)
+			assert.Equal(t, tt.Expected, revoked)
+		})
 	}
 }

@@ -13,7 +13,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -52,9 +54,8 @@ func TestRegister(t *testing.T) {
 		producer:       producer,
 	}
 
-	if err := u.Register(ctx, loginData); err != nil {
-		t.Errorf("ошибка при регистрации: %v", err)
-	}
+	err := u.Register(ctx, loginData)
+	require.NoError(t, err)
 }
 
 func TestLogin(t *testing.T) {
@@ -108,11 +109,10 @@ func TestLogin(t *testing.T) {
 	}
 
 	resTokenPair, err := u.Login(ctx, loginData)
-	if err != nil {
-		t.Errorf("ошибка в входа в аккаунт: %v", err)
-	} else if resTokenPair.RefreshToken != tokenPair.RefreshToken && resTokenPair.AccessToken != tokenPair.AccessToken {
-		t.Errorf("возвращены неккоректные токены: %v", err)
-	}
+	require.NoError(t, err)
+
+	assert.Equal(t, tokenPair.RefreshToken, resTokenPair.RefreshToken)
+	assert.Equal(t, tokenPair.AccessToken, resTokenPair.AccessToken)
 }
 
 func TestRefresh(t *testing.T) {
@@ -151,13 +151,9 @@ func TestRefresh(t *testing.T) {
 	}
 
 	token, err := u.Refresh(ctx, cookie)
-	if err != nil {
-		t.Errorf("не удалось обновить токен: %v", err)
-	}
+	require.NoError(t, err)
 
-	if token == "" {
-		t.Error("возвращен пустой токен")
-	}
+	assert.NotEqual(t, "", token)
 }
 
 func TestLogout(t *testing.T) {
@@ -184,7 +180,6 @@ func TestLogout(t *testing.T) {
 		producer:       producer,
 	}
 
-	if err := u.Logout(ctx, cookie); err != nil {
-		t.Errorf("ошибка выхода из аккаунта: %v", err)
-	}
+	err := u.Logout(ctx, cookie)
+	require.NoError(t, err)
 }
