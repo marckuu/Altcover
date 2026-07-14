@@ -19,10 +19,7 @@ func TestAddRefreshToken(t *testing.T) {
 	tokenRepository := interfaces.NewMockTokenRepository(t)
 	producer := messagingInterfaces.NewMockProducer(t)
 	ctx := context.Background()
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
-		"eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiaXNzIjoiYXV0aC1zZXJ2aWNlIiwic3ViIjoiNmZlYjk" +
-		"wZjUtMmQ1Mi00OTIyLWFhMjctNWVkOTM2YjczZTVhIiwiZXhwIjoxNzgzNjEyNzIyfQ." +
-		"qgYIP8dKUg4swzIjtZbx3S1imb-RjWSUvbsLpmLHj3o"
+	token := "token"
 
 	tokenHash, err := tools.GetTokenHash(token)
 	if err != nil {
@@ -47,10 +44,7 @@ func TestDeleteRefreshToken(t *testing.T) {
 	tokenRepository := interfaces.NewMockTokenRepository(t)
 	producer := messagingInterfaces.NewMockProducer(t)
 	ctx := context.Background()
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
-		"eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiaXNzIjoiYXV0aC1zZXJ2aWNlIiwic3ViIjoiNmZlYjk" +
-		"wZjUtMmQ1Mi00OTIyLWFhMjctNWVkOTM2YjczZTVhIiwiZXhwIjoxNzgzNjEyNzIyfQ." +
-		"qgYIP8dKUg4swzIjtZbx3S1imb-RjWSUvbsLpmLHj3o"
+	token := "token"
 
 	tokenHash, err := tools.GetTokenHash(token)
 	if err != nil {
@@ -75,10 +69,7 @@ func TestDeleteRefreshToken(t *testing.T) {
 func TestIsTokenRevoked(t *testing.T) {
 	producer := messagingInterfaces.NewMockProducer(t)
 	ctx := context.Background()
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
-		"eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiaXNzIjoiYXV0aC1zZXJ2aWNlIiwic3ViIjoiNmZlYjk" +
-		"wZjUtMmQ1Mi00OTIyLWFhMjctNWVkOTM2YjczZTVhIiwiZXhwIjoxNzgzNjEyNzIyfQ." +
-		"qgYIP8dKUg4swzIjtZbx3S1imb-RjWSUvbsLpmLHj3o"
+	token := "token"
 
 	tokenHash, err := tools.GetTokenHash(token)
 	if err != nil {
