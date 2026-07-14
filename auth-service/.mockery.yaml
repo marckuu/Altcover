@@ -10,3 +10,7 @@ packages:
 #  auth-service/internal/auth/services/interfaces:
 #    interfaces:
 #      TokenService:
+#      UserService:
+#  auth-service/core/logger:
+#    interfaces:
+#      Logger:

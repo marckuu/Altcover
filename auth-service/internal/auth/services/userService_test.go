@@ -19,7 +19,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func TestRegister(t *testing.T) {
+func TestUserService_Register(t *testing.T) {
 	userRepository := repositoriesMocks.NewMockUserRepository(t)
 	tokenManager := repositoriesMocks.NewMockTokenManager(t)
 	tokenService := servicesMocks.NewMockTokenService(t)
@@ -58,7 +58,7 @@ func TestRegister(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestLogin(t *testing.T) {
+func TestUserService_Login(t *testing.T) {
 	userRepository := repositoriesMocks.NewMockUserRepository(t)
 	tokenManager := repositoriesMocks.NewMockTokenManager(t)
 	tokenService := servicesMocks.NewMockTokenService(t)
@@ -115,7 +115,7 @@ func TestLogin(t *testing.T) {
 	assert.Equal(t, tokenPair.AccessToken, resTokenPair.AccessToken)
 }
 
-func TestRefresh(t *testing.T) {
+func TestUserService_Refresh(t *testing.T) {
 	userRepository := repositoriesMocks.NewMockUserRepository(t)
 	tokenManager := repositoriesMocks.NewMockTokenManager(t)
 	tokenService := servicesMocks.NewMockTokenService(t)
@@ -156,7 +156,7 @@ func TestRefresh(t *testing.T) {
 	assert.NotEqual(t, "", token)
 }
 
-func TestLogout(t *testing.T) {
+func TestUserService_Logout(t *testing.T) {
 	userRepository := repositoriesMocks.NewMockUserRepository(t)
 	tokenManager := repositoriesMocks.NewMockTokenManager(t)
 	tokenService := servicesMocks.NewMockTokenService(t)

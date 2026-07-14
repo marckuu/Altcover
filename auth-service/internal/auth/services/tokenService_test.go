@@ -19,7 +19,7 @@ type TestTable struct {
 	Expected     bool
 }
 
-func TestAddRefreshToken(t *testing.T) {
+func TestTokenService_AddRefreshToken(t *testing.T) {
 	tokenRepository := interfaces.NewMockTokenRepository(t)
 	producer := messagingInterfaces.NewMockProducer(t)
 	ctx := context.Background()
@@ -43,7 +43,7 @@ func TestAddRefreshToken(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestDeleteRefreshToken(t *testing.T) {
+func TestTokenService_DeleteRefreshToken(t *testing.T) {
 	tokenRepository := interfaces.NewMockTokenRepository(t)
 	producer := messagingInterfaces.NewMockProducer(t)
 	ctx := context.Background()
@@ -67,7 +67,7 @@ func TestDeleteRefreshToken(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestIsTokenRevoked(t *testing.T) {
+func TestTokenService_IsTokenRevoked(t *testing.T) {
 	producer := messagingInterfaces.NewMockProducer(t)
 	ctx := context.Background()
 	token := "token"
