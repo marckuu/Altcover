@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"auth-service/core/db"
 	"auth-service/core/domains"
 	"context"
 	"errors"
@@ -13,7 +14,7 @@ import (
 var errUserNotFound = errors.New("пользователь не найден")
 
 type UserRepository struct {
-	connection *pgx.Conn
+	connection db.Database
 }
 
 func NewUserRepository(conn *pgx.Conn) *UserRepository {
