@@ -4,8 +4,8 @@ import (
 	"auth-service/core/domains"
 	"context"
 	"testing"
-	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
@@ -19,7 +19,6 @@ func TestUserRepository_AddUser(t *testing.T) {
 		Nickname:     "Ivan",
 		Role:         1,
 		PasswordHash: passwordHash,
-		CreatedAt:    time.Time{},
 	}
 	ctx := context.Background()
 
@@ -52,122 +51,152 @@ func TestUserRepository_AddUser(t *testing.T) {
 
 }
 
-//func (u *UserRepository) AddUser(ctx context.Context, user domains.User) error {
-//	query := `
-//	INSERT INTO users (nickname, role, password_hash)
-//	VALUES ($1, $2, $3);
-//`
-//	if _, err := u.connection.Exec(ctx, query, user.Nickname, user.Role, user.PasswordHash); err != nil {
-//		return fmt.Errorf("user repo -> add: %w", err)
-//	}
-//
-//	return nil
-//}
-//
-//func (u *UserRepository) GetUserByID(ctx context.Context, userID uuid.UUID) (domains.User, error) {
-//	query := `
-//	SELECT id, nickname, role, created_at, password_hash
-//	FROM users
-//	WHERE id = $1;
-//`
-//	resultRow := u.connection.QueryRow(ctx, query, userID)
-//
-//	user := domains.User{}
-//
-//	if err := resultRow.Scan(&user.ID, &user.Nickname, &user.Role, &user.CreatedAt, &user.PasswordHash); err != nil {
-//		if errors.Is(err, pgx.ErrNoRows) {
-//			return domains.User{}, errUserNotFound
-//		}
-//		return domains.User{}, fmt.Errorf("user repo -> get by id: %w", err)
-//	}
-//
-//	return user, nil
-//}
-//
-//func (u *UserRepository) GetUsers(ctx context.Context, usersIDs []int64, offset int, limit int) ([]domains.User, error) {
-//	query := `
-//	SELECT id, nickname, role, created_at, password_hash
-//	FROM users
-//	WHERE id = ANY($1)
-//	LIMIT $2
-//	OFFSET $3;
-//`
-//	resultRows, err := u.connection.Query(ctx, query, usersIDs, limit, offset)
-//	if err != nil {
-//		return []domains.User{}, fmt.Errorf("user repo -> get all -> query: %w", err)
-//	}
-//
-//	defer resultRows.Close()
-//
-//	var users []domains.User
-//
-//	for resultRows.Next() {
-//		user := domains.User{}
-//		if err = resultRows.Scan(&user.ID, &user.Nickname, &user.Role, &user.CreatedAt, &user.PasswordHash); err != nil {
-//			return []domains.User{}, fmt.Errorf("user repo -> get all -> parsing: %w", err)
-//		}
-//		users = append(users, user)
-//	}
-//
-//	if err = resultRows.Err(); err != nil {
-//		return []domains.User{}, fmt.Errorf("user repo -> get all -> query thread: %w", err)
-//	}
-//
-//	return users, nil
-//}
-//
-//func (u *UserRepository) UpdateUser(ctx context.Context, user domains.User) error {
-//	query := `
-//	UPDATE users
-//	SET nickname = $1,
-//	    role = $2,
-//	    password_hash = $3
-//	WHERE id = $4;
-//`
-//	tag, err := u.connection.Exec(ctx, query, user.Nickname, user.Role, user.PasswordHash, user.ID)
-//	if err != nil {
-//		return fmt.Errorf("user repo -> update: %w", err)
-//	}
-//
-//	if tag.RowsAffected() == 0 {
-//		return errUserNotFound
-//	}
-//
-//	return nil
-//}
-//
-//func (u *UserRepository) DeleteUserByID(ctx context.Context, userID uuid.UUID) error {
-//	query := `
-//	DELETE FROM users
-//	WHERE id = $1;
-//`
-//	tag, err := u.connection.Exec(ctx, query, userID)
-//	if err != nil {
-//		return fmt.Errorf("user repo -> delete: %w", err)
-//	}
-//
-//	if tag.RowsAffected() == 0 {
-//		return errUserNotFound
-//	}
-//
-//	return nil
-//}
-//
-//func (u *UserRepository) GetUserByNickname(ctx context.Context, nickname string) (domains.User, error) {
-//	query := `
-//	SELECT id, nickname, role, password_hash, created_at
-//	FROM users
-//	WHERE nickname = $1;
-//`
-//	resultRow := u.connection.QueryRow(ctx, query, nickname)
-//
-//	var user domains.User
-//
-//	if err := resultRow.Scan(&user.ID, &user.Nickname, &user.Role, &user.PasswordHash, &user.CreatedAt); err != nil {
-//		if errors.Is(err, pgx.ErrNoRows) {
-//			return domains.User{}, errUserNotFound
-//		}
-//		return domains.User{}, err
-//	}
-//	return user, nil
-//}
+func TestUserRepository_GetUserByID(t *testing.T) {
+	ctx := context.Background()
+	userID := uuid.New()
+	nickname := "Ivan"
+	role := 1
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte("12345678"), 10)
+	require.NoError(t, err)
+
+	tx, err := conn.Begin(ctx)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = tx.Rollback(ctx)
+	})
+
+	u := &UserRepository{
+		connection: tx,
+	}
+
+	_, err = tx.Exec(ctx, `
+	INSERT INTO users VALUES ($1, $2, $3, $4);
+`, userID, nickname, role, passwordHash)
+	require.NoError(t, err)
+
+	receivedUser, err := u.GetUserByID(ctx, userID)
+	require.NoError(t, err)
+
+	assert.Equal(t, userID, receivedUser.ID)
+	assert.Equal(t, nickname, receivedUser.Nickname)
+	assert.Equal(t, role, receivedUser.Role)
+	assert.Equal(t, passwordHash, receivedUser.PasswordHash)
+}
+
+func TestUserRepository_GetUserByNickname(t *testing.T) {
+	ctx := context.Background()
+	nickname := "Ivan"
+	role := 1
+	userID := uuid.New()
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte("12345678"), 10)
+	require.NoError(t, err)
+
+	tx, err := conn.Begin(ctx)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = tx.Rollback(ctx)
+	})
+
+	u := &UserRepository{
+		connection: tx,
+	}
+
+	_, err = tx.Exec(ctx, `
+	INSERT INTO users VALUES ($1, $2, $3, $4);
+`, userID, nickname, role, passwordHash)
+	require.NoError(t, err)
+
+	receivedUser, err := u.GetUserByNickname(ctx, nickname)
+	require.NoError(t, err)
+
+	assert.Equal(t, userID, receivedUser.ID)
+	assert.Equal(t, nickname, receivedUser.Nickname)
+	assert.Equal(t, role, receivedUser.Role)
+	assert.Equal(t, passwordHash, receivedUser.PasswordHash)
+}
+
+func TestUserRepository_UpdateUser(t *testing.T) {
+	ctx := context.Background()
+	userID := uuid.New()
+	nickname := "Ivan"
+	role := 1
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte("12345678"), 10)
+	require.NoError(t, err)
+
+	newNickname := "Paul"
+	newRole := 0
+	NewPasswordHash, err := bcrypt.GenerateFromPassword([]byte("87654321"), 10)
+	require.NoError(t, err)
+
+	user := domains.User{
+		ID:           userID,
+		Nickname:     newNickname,
+		Role:         newRole,
+		PasswordHash: NewPasswordHash,
+	}
+
+	tx, err := conn.Begin(ctx)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = tx.Rollback(ctx)
+	})
+
+	u := &UserRepository{
+		connection: tx,
+	}
+
+	_, err = tx.Exec(ctx, `
+	INSERT INTO users VALUES ($1, $2, $3, $4);
+`, userID, nickname, role, passwordHash)
+	require.NoError(t, err)
+
+	err = u.UpdateUser(ctx, user)
+	require.NoError(t, err)
+
+	savedUser := &domains.User{}
+	err = tx.QueryRow(ctx, `
+	SELECT nickname, role, password_hash
+	FROM users
+	WHERE id=$1;
+`, userID).Scan(&savedUser.Nickname, &savedUser.Role, &savedUser.PasswordHash)
+	require.NoError(t, err)
+
+	assert.Equal(t, newNickname, savedUser.Nickname)
+	assert.Equal(t, newRole, savedUser.Role)
+	assert.Equal(t, NewPasswordHash, savedUser.PasswordHash)
+}
+
+func TestUserRepository_DeleteUserByID(t *testing.T) {
+	ctx := context.Background()
+	userID := uuid.New()
+	nickname := "Ivan"
+	role := 1
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte("12345678"), 10)
+	require.NoError(t, err)
+
+	tx, err := conn.Begin(ctx)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = tx.Rollback(ctx)
+	})
+
+	u := &UserRepository{
+		connection: tx,
+	}
+
+	_, err = tx.Exec(ctx, `
+	INSERT INTO users VALUES ($1, $2, $3, $4);
+`, userID, nickname, role, passwordHash)
+	require.NoError(t, err)
+
+	err = u.DeleteUserByID(ctx, userID)
+	require.NoError(t, err)
+
+	savedUser := &domains.User{}
+	err = tx.QueryRow(ctx, `
+	SELECT nickname, role, password_hash
+	FROM users
+	WHERE id=$1;
+`, userID).Scan(&savedUser.Nickname, &savedUser.Role, &savedUser.PasswordHash)
+	require.Error(t, err)
+}
