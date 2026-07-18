@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"auth-service/core/db"
 	"auth-service/core/domains"
 	"context"
 	"errors"
@@ -13,7 +14,7 @@ import (
 var errDesignerProfileNotFound = errors.New("профиль дизайнера не найден")
 
 type DesignerProfileRepository struct {
-	connection *pgx.Conn
+	connection db.Database
 }
 
 func NewDesignerProfileRepository(conn *pgx.Conn) *DesignerProfileRepository {
