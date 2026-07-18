@@ -70,7 +70,7 @@ func TestUserRepository_GetUserByID(t *testing.T) {
 	}
 
 	_, err = tx.Exec(ctx, `
-	INSERT INTO users VALUES ($1, $2, $3, $4);
+	INSERT INTO users (id, nickname, role, password_hash) VALUES ($1, $2, $3, $4);
 `, userID, nickname, role, passwordHash)
 	require.NoError(t, err)
 
@@ -102,7 +102,7 @@ func TestUserRepository_GetUserByNickname(t *testing.T) {
 	}
 
 	_, err = tx.Exec(ctx, `
-	INSERT INTO users VALUES ($1, $2, $3, $4);
+	INSERT INTO users (id, nickname, role, password_hash) VALUES ($1, $2, $3, $4);
 `, userID, nickname, role, passwordHash)
 	require.NoError(t, err)
 
@@ -146,7 +146,7 @@ func TestUserRepository_UpdateUser(t *testing.T) {
 	}
 
 	_, err = tx.Exec(ctx, `
-	INSERT INTO users VALUES ($1, $2, $3, $4);
+	INSERT INTO users (id, nickname, role, password_hash) VALUES ($1, $2, $3, $4);
 `, userID, nickname, role, passwordHash)
 	require.NoError(t, err)
 
@@ -185,7 +185,7 @@ func TestUserRepository_DeleteUserByID(t *testing.T) {
 	}
 
 	_, err = tx.Exec(ctx, `
-	INSERT INTO users VALUES ($1, $2, $3, $4);
+	INSERT INTO users (id, nickname, role, password_hash) VALUES ($1, $2, $3, $4);
 `, userID, nickname, role, passwordHash)
 	require.NoError(t, err)
 
