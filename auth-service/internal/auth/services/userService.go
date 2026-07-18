@@ -3,7 +3,7 @@ package services
 import (
 	"auth-service/core/domains"
 	"auth-service/core/enums"
-	"auth-service/core/shared/messaging"
+	messagingInterfaces "auth-service/core/shared/messaging/interfaces"
 	authRepositoryInterfaces "auth-service/internal/auth/repositories/interfaces"
 	authServicesInterfaces "auth-service/internal/auth/services/interfaces"
 	"auth-service/internal/auth/transport/dto"
@@ -19,11 +19,11 @@ type UserService struct {
 	userRepository authRepositoryInterfaces.UserRepository
 	tokenManager   authRepositoryInterfaces.TokenManager
 	tokenService   authServicesInterfaces.TokenService
-	producer       *messaging.Producer
+	producer       messagingInterfaces.Producer
 }
 
 func NewUserService(repository authRepositoryInterfaces.UserRepository,
-	producer *messaging.Producer,
+	producer messagingInterfaces.Producer,
 	tokenManager authRepositoryInterfaces.TokenManager,
 	tokenService authServicesInterfaces.TokenService) *UserService {
 	return &UserService{

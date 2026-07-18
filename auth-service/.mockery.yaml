@@ -1,0 +1,16 @@
+packages:
+#  auth-service/internal/auth/repositories/interfaces:
+#    interfaces:
+#      TokenRepository:
+#      TokenManager:
+#      UserRepository:
+#  auth-service/core/shared/messaging/interfaces:
+#    interfaces:
+#      Producer:
+#  auth-service/internal/auth/services/interfaces:
+#    interfaces:
+#      TokenService:
+#      UserService:
+#  auth-service/core/logger:
+#    interfaces:
+#      Logger:

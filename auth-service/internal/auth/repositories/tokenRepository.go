@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"auth-service/core/db"
 	"auth-service/core/domains"
 	errors2 "auth-service/core/errors"
 	"context"
@@ -11,7 +12,7 @@ import (
 )
 
 type TokenRepository struct {
-	connection *pgx.Conn
+	connection db.Database
 }
 
 func NewTokenRepository(conn *pgx.Conn) *TokenRepository {

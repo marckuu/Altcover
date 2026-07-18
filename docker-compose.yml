@@ -1,4 +1,22 @@
 services:
+  postgres-test:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: "test"
+      POSTGRES_PASSWORD: "test"
+      POSTGRES_DB: altcover_test
+    networks:
+      - postgres-test
+    ports:
+      - "5433:5432"
+    restart: always
+    container_name: postgres-test
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d altcover_auth_test" ]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
   postgres-auth:
     image: postgres:17
     environment:
@@ -33,6 +51,7 @@ services:
       - postgres-auth
     networks:
       - postgres-auth
+      - postgres-test
     profiles:
       - tools
 
@@ -44,6 +63,7 @@ services:
       - postgres-book-cover
     networks:
       - postgres-book-cover
+      - postgres-test
     profiles:
       - tools
 
@@ -67,6 +87,7 @@ services:
       - external-net
       - kafka-net
       - postgres-auth
+      - postgres-test
     restart: always
 
   book-cover-service:
@@ -90,6 +111,7 @@ services:
       - external-net
       - kafka-net
       - postgres-book-cover
+      - postgres-test
     restart: always
 
   zookeeper:
@@ -206,4 +228,7 @@ networks:
   postgres-book-cover:
     driver: bridge
     internal: true
+  postgres-test:
+    driver: bridge
+    internal: false
 

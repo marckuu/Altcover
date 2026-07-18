@@ -50,7 +50,7 @@ func main() {
 	}()
 
 	ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM)
-	conn, err := db.CreateConnection(ctx)
+	conn, err := db.CreateConnection(ctx, os.Getenv("DB_CONN_PATH"))
 	if err != nil {
 		fmt.Printf("Не удалось создать подключение к бд: %v", err)
 		return

@@ -4,6 +4,7 @@ import (
 	"book-cover-service/core/domains"
 	"book-cover-service/internal/covers/repositories/interfaces"
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -36,19 +37,35 @@ func (c *CoverService) GetCoverByID(ctx context.Context, coverID uuid.UUID) (dom
 	return cover, nil
 }
 
-func (c *CoverService) UpdateCover(ctx context.Context, cover domains.Cover) error {
-	if err := c.coverRepository.UpdateCover(ctx, cover); err != nil {
-		return err
+func (c *CoverService) UpdateCover(ctx context.Context, coverID uuid.UUID, userID uuid.UUID, newCover domains.Cover) (domains.Cover, error) {
+	cover, err := c.coverRepository.GetCoverByID(ctx, coverID)
+	if err != nil {
+		return domains.Cover{}, err
 	}
-	return nil
+
+	if cover.UserID != userID {
+		return domains.Cover{}, fmt.Errorf("дизайнер не является автором данной обложки: %w", err)
+	}
+
+	if err = c.coverRepository.UpdateCover(ctx, newCover); err != nil {
+		return domains.Cover{}, err
+	}
+
+	newCover.ID = coverID
+	newCover.UserID = userID
+	newCover.BookID = cover.BookID
+
+	return newCover, nil
 }
 
-func (c *CoverService) AddCover(ctx context.Context, cover domains.Cover) error {
+func (c *CoverService) AddCover(ctx context.Context, userID uuid.UUID, cover domains.Cover) (domains.Cover, error) {
+	cover.UserID = userID
+
 	if err := c.coverRepository.AddCover(ctx, cover); err != nil {
-		return err
+		return domains.Cover{}, err
 	}
 
-	return nil
+	return domains.Cover{}, nil
 }
 
 func (c *CoverService) GetCoversByIDs(ctx context.Context, coversIDs []uuid.UUID) ([]domains.Cover, error) {

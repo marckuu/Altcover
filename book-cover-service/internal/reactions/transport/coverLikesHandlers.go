@@ -6,7 +6,6 @@ import (
 	"book-cover-service/core/tools"
 	reactionServicesInterfaces "book-cover-service/internal/reactions/services/interfaces"
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -32,27 +31,21 @@ func (l *HTTPCoverLikeHandlers) HandleSetLike(w http.ResponseWriter, r *http.Req
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
 		l.logger.Error(fmt.Errorf("не удалось получить ID пользователя из токена: %w", err).Error())
-		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		tools.SendErrorResponse(w, fmt.Errorf("не удалось получить ID пользователя из токена: %w", err), http.StatusBadRequest)
 		return
 	}
 
-	coverIDRaw, ok := mux.Vars(r)["cover_id"]
-	if !ok {
-		l.logger.Error(fmt.Errorf("не удалось получить ID обложки из url: %w", err).Error())
-		tools.SendErrorResponse(w, errors.New("не удалось получить ID обложки из url"), http.StatusBadRequest)
-		return
-	}
-
+	coverIDRaw := mux.Vars(r)["book_id"]
 	coverID, err := uuid.Parse(coverIDRaw)
 	if err != nil {
-		l.logger.Error(fmt.Errorf("не удалось преобразовать id обложки uuid: %w", err).Error())
-		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		l.logger.Error(fmt.Errorf("ошибка преобразования строки в uuid: %w", err).Error())
+		tools.SendErrorResponse(w, fmt.Errorf("ошибка преобразования строки в uuid: %w", err), http.StatusBadRequest)
 		return
 	}
 
 	if err = l.coverLikeService.SetLike(l.ctx, userID, coverID); err != nil {
 		l.logger.Error(fmt.Errorf("ошибка при записи данных лайка в таблицу: %w", err).Error())
-		tools.SendErrorResponse(w, err, http.StatusBadRequest)
+		tools.SendErrorResponse(w, fmt.Errorf("ошибка при записи данных лайка в таблицу: %w", err), http.StatusInternalServerError)
 		return
 	}
 }
