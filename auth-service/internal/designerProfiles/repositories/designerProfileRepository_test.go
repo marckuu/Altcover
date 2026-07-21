@@ -4,6 +4,7 @@ import (
 	"auth-service/core/domains"
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -11,8 +12,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var testTimeout = 10 * time.Second
+
 func TestDesignerProfileRepository_AddDesignerProfile(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	profile := domains.DesignerProfile{
 		Nickname:  "Ivan",
 		AvatarKey: "12345678",
@@ -27,6 +30,7 @@ func TestDesignerProfileRepository_AddDesignerProfile(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
+		cancel()
 	})
 
 	d := &DesignerProfileRepository{
@@ -66,7 +70,7 @@ func TestDesignerProfileRepository_AddDesignerProfile(t *testing.T) {
 }
 
 func TestDesignerProfileRepository_GetDesignerProfileByUserID(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	profile := domains.DesignerProfile{
 		Nickname:  "Ivan",
 		AvatarKey: "12345678",
@@ -81,6 +85,7 @@ func TestDesignerProfileRepository_GetDesignerProfileByUserID(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
+		cancel()
 	})
 
 	d := &DesignerProfileRepository{
@@ -116,7 +121,7 @@ func TestDesignerProfileRepository_GetDesignerProfileByUserID(t *testing.T) {
 }
 
 func TestDesignerProfileRepository_UpdateDesignerProfile(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	profile := domains.DesignerProfile{
 		Nickname:  "Ivan",
 		AvatarKey: "12345678",
@@ -135,6 +140,7 @@ func TestDesignerProfileRepository_UpdateDesignerProfile(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
+		cancel()
 	})
 
 	d := &DesignerProfileRepository{connection: tx}
@@ -186,7 +192,7 @@ func TestDesignerProfileRepository_UpdateDesignerProfile(t *testing.T) {
 }
 
 func TestDesignerProfileRepository_DeleteDesignerProfile(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	profile := domains.DesignerProfile{
 		Nickname:  "Ivan",
 		AvatarKey: "12345678",
@@ -201,6 +207,7 @@ func TestDesignerProfileRepository_DeleteDesignerProfile(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
+		cancel()
 	})
 
 	_, err = tx.Exec(ctx, `

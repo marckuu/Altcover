@@ -12,6 +12,7 @@ import (
 )
 
 func TestUserRepository_AddUser(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte("12345678"), 10)
 	require.NoError(t, err)
 
@@ -20,13 +21,13 @@ func TestUserRepository_AddUser(t *testing.T) {
 		Role:         1,
 		PasswordHash: passwordHash,
 	}
-	ctx := context.Background()
 
 	tx, err := conn.Begin(ctx)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
+		cancel()
 	})
 
 	u := &UserRepository{
@@ -52,7 +53,7 @@ func TestUserRepository_AddUser(t *testing.T) {
 }
 
 func TestUserRepository_GetUserByID(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	userID := uuid.New()
 	nickname := "Ivan"
 	role := 1
@@ -63,6 +64,7 @@ func TestUserRepository_GetUserByID(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
+		cancel()
 	})
 
 	u := &UserRepository{
@@ -84,7 +86,7 @@ func TestUserRepository_GetUserByID(t *testing.T) {
 }
 
 func TestUserRepository_GetUserByNickname(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	nickname := "Ivan"
 	role := 1
 	userID := uuid.New()
@@ -95,6 +97,7 @@ func TestUserRepository_GetUserByNickname(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
+		cancel()
 	})
 
 	u := &UserRepository{
@@ -116,7 +119,7 @@ func TestUserRepository_GetUserByNickname(t *testing.T) {
 }
 
 func TestUserRepository_UpdateUser(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	userID := uuid.New()
 	nickname := "Ivan"
 	role := 1
@@ -139,6 +142,7 @@ func TestUserRepository_UpdateUser(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
+		cancel()
 	})
 
 	u := &UserRepository{
@@ -167,7 +171,7 @@ func TestUserRepository_UpdateUser(t *testing.T) {
 }
 
 func TestUserRepository_DeleteUserByID(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	userID := uuid.New()
 	nickname := "Ivan"
 	role := 1
@@ -178,6 +182,7 @@ func TestUserRepository_DeleteUserByID(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
+		cancel()
 	})
 
 	u := &UserRepository{
