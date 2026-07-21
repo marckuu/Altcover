@@ -26,7 +26,7 @@ func TestDesignerProfileRepository_AddDesignerProfile(t *testing.T) {
 		PasswordHash: []byte{1, 0},
 	}
 
-	tx, err := conn.Begin(ctx)
+	tx, err := coonPool.Begin(ctx)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
@@ -81,7 +81,7 @@ func TestDesignerProfileRepository_GetDesignerProfileByUserID(t *testing.T) {
 		PasswordHash: []byte{1, 0},
 	}
 
-	tx, err := conn.Begin(ctx)
+	tx, err := coonPool.Begin(ctx)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
@@ -136,7 +136,7 @@ func TestDesignerProfileRepository_UpdateDesignerProfile(t *testing.T) {
 		PasswordHash: []byte{1, 0},
 	}
 
-	tx, err := conn.Begin(ctx)
+	tx, err := coonPool.Begin(ctx)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
@@ -203,7 +203,7 @@ func TestDesignerProfileRepository_DeleteDesignerProfile(t *testing.T) {
 		PasswordHash: []byte{1, 0},
 	}
 
-	tx, err := conn.Begin(ctx)
+	tx, err := coonPool.Begin(ctx)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)

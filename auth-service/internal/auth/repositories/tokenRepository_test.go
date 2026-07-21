@@ -21,7 +21,7 @@ func TestTokenRepository_AddRefreshToken(t *testing.T) {
 	tokenHash, err := tools.GetTokenHash(token)
 	require.NoError(t, err)
 
-	tx, err := conn.Begin(ctx)
+	tx, err := coonPool.Begin(ctx)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
@@ -55,7 +55,7 @@ func TestTokenRepository_GetRefreshTokenByHash(t *testing.T) {
 	tokenHash, err := tools.GetTokenHash(token)
 	require.NoError(t, err)
 
-	tx, err := conn.Begin(ctx)
+	tx, err := coonPool.Begin(ctx)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
@@ -84,7 +84,7 @@ func TestTokenRepository_DeleteRefreshToken(t *testing.T) {
 	tokenHash, err := tools.GetTokenHash(token)
 	require.NoError(t, err)
 
-	tx, err := conn.Begin(ctx)
+	tx, err := coonPool.Begin(ctx)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)

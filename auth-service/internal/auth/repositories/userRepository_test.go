@@ -22,7 +22,7 @@ func TestUserRepository_AddUser(t *testing.T) {
 		PasswordHash: passwordHash,
 	}
 
-	tx, err := conn.Begin(ctx)
+	tx, err := coonPool.Begin(ctx)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -60,7 +60,7 @@ func TestUserRepository_GetUserByID(t *testing.T) {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte("12345678"), 10)
 	require.NoError(t, err)
 
-	tx, err := conn.Begin(ctx)
+	tx, err := coonPool.Begin(ctx)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
@@ -93,7 +93,7 @@ func TestUserRepository_GetUserByNickname(t *testing.T) {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte("12345678"), 10)
 	require.NoError(t, err)
 
-	tx, err := conn.Begin(ctx)
+	tx, err := coonPool.Begin(ctx)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
@@ -138,7 +138,7 @@ func TestUserRepository_UpdateUser(t *testing.T) {
 		PasswordHash: NewPasswordHash,
 	}
 
-	tx, err := conn.Begin(ctx)
+	tx, err := coonPool.Begin(ctx)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
@@ -178,7 +178,7 @@ func TestUserRepository_DeleteUserByID(t *testing.T) {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte("12345678"), 10)
 	require.NoError(t, err)
 
-	tx, err := conn.Begin(ctx)
+	tx, err := coonPool.Begin(ctx)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
