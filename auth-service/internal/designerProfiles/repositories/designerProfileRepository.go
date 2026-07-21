@@ -17,7 +17,7 @@ type DesignerProfileRepository struct {
 	connection db.Database
 }
 
-func NewDesignerProfileRepository(conn *pgx.Conn) *DesignerProfileRepository {
+func NewDesignerProfileRepository(conn db.Database) *DesignerProfileRepository {
 	return &DesignerProfileRepository{
 		connection: conn,
 	}

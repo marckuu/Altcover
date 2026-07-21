@@ -50,16 +50,16 @@ func main() {
 	}()
 
 	ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM)
-	conn, err := db.CreateConnection(ctx, os.Getenv("DB_CONN_PATH"))
+	coonPool, err := db.CreateConnPool(ctx, os.Getenv("DB_CONN_PATH"))
 	if err != nil {
 		fmt.Printf("Не удалось создать подключение к бд: %v", err)
 		return
 	}
 
-	tokenService := services2.NewTokenService(repositories.NewTokenRepository(conn), producer)
+	tokenService := services2.NewTokenService(repositories.NewTokenRepository(coonPool), producer)
 	jwtManagerCover := jwtCovers.NewJwtManagerCover(repositories.JwtManager{})
-	userService := services2.NewUserService(repositories.NewUserRepository(conn), producer, jwtManagerCover, tokenService)
-	designerProfileService := services.NewDesignerProfileService(repositories2.NewDesignerProfileRepository(conn), producer)
+	userService := services2.NewUserService(repositories.NewUserRepository(coonPool), producer, jwtManagerCover, tokenService)
+	designerProfileService := services.NewDesignerProfileService(repositories2.NewDesignerProfileRepository(coonPool), producer)
 
 	serverManager := NewServerManager(
 		tokenService,
