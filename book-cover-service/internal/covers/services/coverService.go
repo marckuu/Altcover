@@ -58,9 +58,7 @@ func (c *CoverService) UpdateCover(ctx context.Context, coverID uuid.UUID, userI
 	return newCover, nil
 }
 
-func (c *CoverService) AddCover(ctx context.Context, userID uuid.UUID, cover domains.Cover) (domains.Cover, error) {
-	cover.UserID = userID
-
+func (c *CoverService) AddCover(ctx context.Context, cover domains.Cover) (domains.Cover, error) {
 	if err := c.coverRepository.AddCover(ctx, cover); err != nil {
 		return domains.Cover{}, err
 	}

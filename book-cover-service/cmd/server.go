@@ -15,6 +15,10 @@ import (
 	"fmt"
 	"net/http"
 
+	httpSwagger "github.com/swaggo/http-swagger"
+
+	_ "book-cover-service/docs"
+
 	"github.com/gorilla/mux"
 )
 
@@ -48,6 +52,8 @@ func NewServerManager(coverService coverServicesInterfaces.CoverService,
 func (s *ServerManager) StartServer() {
 	router := mux.NewRouter()
 
+	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+
 	router.
 		Path("/books").
 		Methods("POST").
@@ -67,6 +73,13 @@ func (s *ServerManager) StartServer() {
 		Methods("DELETE").
 		HandlerFunc(
 			s.middleware.Auth(http.HandlerFunc(s.bookHandlers.HandleDeleteBook)),
+		)
+
+	router.
+		Path("/books/{title}").
+		Methods("GET").
+		HandlerFunc(
+			s.middleware.Auth(http.HandlerFunc(s.bookHandlers.HandleGetBookByTitle)),
 		)
 
 	router.

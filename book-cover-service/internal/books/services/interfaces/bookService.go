@@ -11,4 +11,5 @@ type BookService interface {
 	AddBook(ctx context.Context, book domains.Book) error
 	UpdateBook(ctx context.Context, book domains.Book) error
 	DeleteBook(ctx context.Context, bookID uuid.UUID) error
+	GetBookByTitle(ctx context.Context, title string) (domains.Book, error)
 }

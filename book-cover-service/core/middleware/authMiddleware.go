@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"book-cover-service/core/tools"
+	errors2 "book-cover-service/core/errors"
 	"book-cover-service/internal/auth/repositories"
 	"context"
 	"errors"
@@ -63,7 +63,7 @@ func (a *AuthMiddleware) Auth(handler http.Handler) func(w http.ResponseWriter, 
 
 		claims, err := a.ProcessToken(authHeader)
 		if err != nil {
-			tools.SendErrorResponse(w, err, http.StatusUnauthorized)
+			errors2.SendErrorResponse(w, err, http.StatusUnauthorized)
 			return
 		}
 

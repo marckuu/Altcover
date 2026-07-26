@@ -22,6 +22,15 @@ import (
 	"syscall"
 )
 
+// @title Маркетплейс альтернативных обложек для книг
+// @description Сервис обложек и книг
+// @version 1.0
+// @contact.name markuu
+// @contact.url https://github.com/marckuu
+
+// @securityDefinitions.apiKey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 
 	addresses := []string{os.Getenv("KAFKA_BROKER1_URL"), os.Getenv("KAFKA_BROKER2_URL"), os.Getenv("KAFKA_BROKER3_URL")}

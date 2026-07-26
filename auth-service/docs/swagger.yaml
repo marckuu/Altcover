@@ -1,0 +1,220 @@
+definitions:
+  auth-service_core_errors.ErrorResponse:
+    properties:
+      message:
+        example: some error...
+        type: string
+      time:
+        example: 2026-04-12:13:20:47
+        type: string
+    type: object
+  auth-service_internal_auth_transport_dto.LoginRequest:
+    properties:
+      nickname:
+        example: Paul
+        type: string
+      password:
+        example: 1234#678
+        type: string
+    type: object
+  auth-service_internal_designerProfiles_transport_dto.CreteDesignerProfileRequest:
+    properties:
+      avatarKey:
+        description: Нужно будет настроить работу с minio
+        example: designer_profile/avatars/1542
+        type: string
+      nickname:
+        example: Tom
+        type: string
+    type: object
+  auth-service_internal_designerProfiles_transport_dto.UpdateDesignerProfileRequest:
+    properties:
+      avatarKey:
+        description: Нужно будет настроить работу с minio
+        example: designer_profiles/avatars/1512
+        type: string
+      nickname:
+        example: Dan
+        type: string
+    type: object
+info:
+  contact:
+    name: markuu
+    url: https://github.com/marckuu
+  description: Сервис аутентификации
+  title: Маркетплейс альтернативных обложек для книг
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Вход в существующий аккаунт
+      parameters:
+      - description: Login Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth-service_internal_auth_transport_dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Login
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      description: Считавает Refresh token из cookie и выходит из аккаунта
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Logout
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      description: Считавает Refresh token из cookie и обновляет его
+      produces:
+      - application/json
+      responses:
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Refresh
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Регистрирует нового пользователя
+      parameters:
+      - description: Register Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth-service_internal_auth_transport_dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+      summary: Register
+      tags:
+      - auth
+  /designer_profiles/me:
+    delete:
+      description: Удаляет профиль дизайнера текущего пользователя
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete my designer profile
+      tags:
+      - designer profiles
+    get:
+      description: Получить профиль дизайнера текущего пользователя
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get my designer profile
+      tags:
+      - designer profiles
+    patch:
+      consumes:
+      - application/json
+      description: Обновляет профиль дизайнера текущего пользователя
+      parameters:
+      - description: Designer profile
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth-service_internal_designerProfiles_transport_dto.UpdateDesignerProfileRequest'
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update designer profile
+      tags:
+      - designer profiles
+    post:
+      description: Создать профиль дизайнера для текущего пользователя
+      parameters:
+      - description: Designer profile
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth-service_internal_designerProfiles_transport_dto.CreteDesignerProfileRequest'
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create my designer profile
+      tags:
+      - designer profiles
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

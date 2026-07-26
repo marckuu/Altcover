@@ -51,6 +51,23 @@ func (b *BookRepository) GetBookByID(ctx context.Context, bookID int64) (domains
 	return book, nil
 }
 
+func (b *BookRepository) GetBookByTitle(ctx context.Context, title string) (domains.Book, error) {
+	query := `
+	SELECT id, title, description
+	FROM book
+	WHERE title = $1;
+`
+	resultRow := b.connection.QueryRow(ctx, query, title)
+
+	var book domains.Book
+
+	if err := resultRow.Scan(&book.ID, &book.Title, &book.Description); err != nil {
+		return domains.Book{}, fmt.Errorf("book repo / get by title: %w", err)
+	}
+
+	return book, nil
+}
+
 func (b *BookRepository) GetBooks(ctx context.Context, offset int, limit int) ([]domains.Book, error) {
 	query := `
 	SELECT id, title, description

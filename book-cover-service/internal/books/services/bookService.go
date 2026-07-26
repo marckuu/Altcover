@@ -38,3 +38,11 @@ func (b *BookService) DeleteBook(ctx context.Context, bookID uuid.UUID) error {
 	}
 	return nil
 }
+
+func (b *BookService) GetBookByTitle(ctx context.Context, title string) (domains.Book, error) {
+	book, err := b.bookRepository.GetBookByTitle(ctx, title)
+	if err != nil {
+		return domains.Book{}, err
+	}
+	return book, nil
+}

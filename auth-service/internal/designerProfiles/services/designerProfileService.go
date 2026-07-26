@@ -65,8 +65,6 @@ func (d *DesignerProfileService) CreateDesignerProfileToUser(ctx context.Context
 		return fmt.Errorf("профиль дизайнера уже существует: %w", err)
 	}
 
-	designerProfile.UserID = userID
-
 	if err = d.designerProfileRepository.AddDesignerProfile(ctx, designerProfile); err != nil {
 		return err
 	}

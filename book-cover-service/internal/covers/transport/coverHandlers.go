@@ -2,10 +2,12 @@ package transport
 
 import (
 	"book-cover-service/core/domains"
+	errors2 "book-cover-service/core/errors"
 	logs "book-cover-service/core/logger"
 	"book-cover-service/core/middleware"
-	tools2 "book-cover-service/core/tools"
+	tools "book-cover-service/core/tools"
 	serviceInterfaces "book-cover-service/internal/covers/services/interfaces"
+	"book-cover-service/internal/covers/transport/dto"
 	designerProfileSnapshotServiceInterfaces "book-cover-service/internal/snapshots/services/interfaces"
 	"context"
 	"encoding/json"
@@ -38,24 +40,35 @@ func NewCoverHandlers(coverService serviceInterfaces.CoverService,
 	}
 }
 
+// @Summary Get my covers
+// @Description Получить обложки текущего дизайнера
+// @Security ApiKeyAuth
+// @Tags covers
+// @Produce json
+// @Param offset query string true "Pagination offset"
+// @Param limit query string true "Pagination limit"
+// @Succes 200 {array} domains.Cover
+// @Failure 400 {object} errors2.ErrorResponse
+// @Failure 500 {object} errors2.ErrorResponse
+// @Router /designers/me/covers [get]
 func (c *HTTPCoverHandlers) HandleGetMyCoversAsDesigner(w http.ResponseWriter, r *http.Request) {
-	offset, limit, err := tools2.GetOffsetAndLimitFromQuery(r.URL.Query().Get("offset"), r.URL.Query().Get("limit"))
+	offset, limit, err := tools.GetOffsetAndLimitFromQuery(r.URL.Query().Get("offset"), r.URL.Query().Get("limit"))
 	if err != nil {
 		c.logger.Error(err.Error())
-		tools2.SendErrorResponse(w, err, http.StatusBadRequest)
+		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 	}
 
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
 		c.logger.Error(fmt.Errorf("не удалось получить ID пользователя из токена: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusBadRequest)
+		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	covers, err := c.coverService.GetCoversByUserID(c.ctx, offset, limit, userID)
 	if err != nil {
 		c.logger.Error(fmt.Errorf("ошибка при получении списка обложек дизайнера: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusInternalServerError)
+		errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -66,25 +79,37 @@ func (c *HTTPCoverHandlers) HandleGetMyCoversAsDesigner(w http.ResponseWriter, r
 	}
 }
 
+// @Summary Get covers by user ID
+// @Description Получить обложки по id пользователя
+// @Security ApiKeyAuth
+// @Tags covers
+// @Produce json
+// @Param offset query string true "Pagination offset"
+// @Param limit query string true "Pagination limit"
+// @Param book_id path string true "User id"
+// @Succes 200 {array} domains.Cover
+// @Failure 400 {object} errors2.ErrorResponse
+// @Failure 500 {object} errors2.ErrorResponse
+// @Router /designers/{user_id}/covers [get]
 func (c *HTTPCoverHandlers) HandleGetCoversByDesignerUserID(w http.ResponseWriter, r *http.Request) {
-	offset, limit, err := tools2.GetOffsetAndLimitFromQuery(r.URL.Query().Get("offset"), r.URL.Query().Get("limit"))
+	offset, limit, err := tools.GetOffsetAndLimitFromQuery(r.URL.Query().Get("offset"), r.URL.Query().Get("limit"))
 	if err != nil {
 		c.logger.Error(err.Error())
-		tools2.SendErrorResponse(w, err, http.StatusBadRequest)
+		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 	}
 
 	userIDRaw := mux.Vars(r)["user_id"]
 	userID, err := uuid.Parse(userIDRaw)
 	if err != nil {
 		c.logger.Error(fmt.Errorf("ошибка преобразования строки в uuid: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusInternalServerError)
+		errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	covers, err := c.coverService.GetCoversByUserID(c.ctx, offset, limit, userID)
 	if err != nil {
 		c.logger.Error(fmt.Errorf("ошибка при получении списка обложек дизайнера: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusInternalServerError)
+		errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -93,11 +118,21 @@ func (c *HTTPCoverHandlers) HandleGetCoversByDesignerUserID(w http.ResponseWrite
 	}
 }
 
+// @Summary Update cover
+// @Description Обновить обложку
+// @Security ApiKeyAuth
+// @Tags covers
+// @Produce json
+// @Param cover_id path string true "Cover id"
+// @Succes 200 {object} domains.Cover
+// @Failure 400 {object} errors2.ErrorResponse
+// @Failure 500 {object} errors2.ErrorResponse
+// @Router /covers/{cover_id} [patch]
 func (c *HTTPCoverHandlers) HandleUpdateCover(w http.ResponseWriter, r *http.Request) {
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
 		c.logger.Error(fmt.Errorf("не удалось получить ID пользователя из токена: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusBadRequest)
+		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -105,22 +140,28 @@ func (c *HTTPCoverHandlers) HandleUpdateCover(w http.ResponseWriter, r *http.Req
 	coverID, err := uuid.Parse(coverIDRaw)
 	if err != nil {
 		c.logger.Error(fmt.Errorf("ошибка преобразования строки в uuid: %w", err).Error())
-		tools2.SendErrorResponse(w, errors.New("не получилось сконвертировать id"), http.StatusInternalServerError)
+		errors2.SendErrorResponse(w, errors.New("не получилось сконвертировать id"), http.StatusInternalServerError)
 		return
 	}
 
-	var newCover domains.Cover
+	var updateCoverRequest dto.UpdateCoverRequest
 
-	if err = json.NewDecoder(r.Body).Decode(&newCover); err != nil {
+	if err = json.NewDecoder(r.Body).Decode(&updateCoverRequest); err != nil {
 		c.logger.Error(fmt.Errorf("ошибка при чтении тела запроса: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusBadRequest)
+		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	newCover, err = c.coverService.UpdateCover(c.ctx, coverID, userID, newCover)
+	cover := domains.Cover{
+		Title:       updateCoverRequest.Title,
+		Description: updateCoverRequest.Description,
+		ImagesKeys:  updateCoverRequest.ImagesKeys,
+		Status:      updateCoverRequest.Status,
+	}
+	newCover, err := c.coverService.UpdateCover(c.ctx, coverID, userID, cover)
 	if err != nil {
 		c.logger.Error(err.Error())
-		tools2.SendErrorResponse(w, err, http.StatusInternalServerError)
+		errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -129,19 +170,29 @@ func (c *HTTPCoverHandlers) HandleUpdateCover(w http.ResponseWriter, r *http.Req
 	}
 }
 
+// @Summary Get cover by id
+// @Description Получить обложку по id
+// @Security ApiKeyAuth
+// @Tags covers
+// @Produce json
+// @Param cover_id path string true "Cover id"
+// @Succes 200 {object} domains.Cover
+// @Failure 400 {object} errors2.ErrorResponse
+// @Failure 500 {object} errors2.ErrorResponse
+// @Router /covers/{cover_id} [get]
 func (c *HTTPCoverHandlers) HandleGetCoverByID(w http.ResponseWriter, r *http.Request) {
 	coverID := mux.Vars(r)["cover_id"]
 	coverIDConverted, err := uuid.Parse(coverID)
 	if err != nil {
 		c.logger.Error(fmt.Errorf("ошибка преобразования строки в uuid: %w", err).Error())
-		tools2.SendErrorResponse(w, errors.New("не получилось сконвертировать id"), http.StatusInternalServerError)
+		errors2.SendErrorResponse(w, errors.New("не получилось сконвертировать id"), http.StatusInternalServerError)
 		return
 	}
 
 	cover, err := c.coverService.GetCoverByID(c.ctx, coverIDConverted)
 	if err != nil {
 		c.logger.Error(fmt.Errorf("ошибка при получении обложки: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusInternalServerError)
+		errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -150,26 +201,45 @@ func (c *HTTPCoverHandlers) HandleGetCoverByID(w http.ResponseWriter, r *http.Re
 	}
 }
 
+// @Summary Add cover
+// @Description Добавить обложку
+// @Security ApiKeyAuth
+// @Tags covers
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateCoverRequest true "Cover id"
+// @Succes 200 {object} domains.Cover
+// @Failure 400 {object} errors2.ErrorResponse
+// @Failure 500 {object} errors2.ErrorResponse
+// @Router /covers [post]
 func (c *HTTPCoverHandlers) HandleAddCover(w http.ResponseWriter, r *http.Request) {
-	var cover domains.Cover
+	var createCoverRequest dto.CreateCoverRequest
 
-	if err := json.NewDecoder(r.Body).Decode(&cover); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&createCoverRequest); err != nil {
 		c.logger.Error(fmt.Errorf("ошибка при чтении тела запроса: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusBadRequest)
+		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
 		c.logger.Error(fmt.Errorf("не удалось получить ID пользователя из токена: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusBadRequest)
+		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	cover, err = c.coverService.AddCover(c.ctx, userID, cover)
+	cover := domains.Cover{
+		Title:       createCoverRequest.Title,
+		Description: createCoverRequest.Description,
+		ImagesKeys:  createCoverRequest.ImagesKeys,
+		Status:      createCoverRequest.Status,
+		UserID:      userID,
+		BookID:      createCoverRequest.BookID,
+	}
+	cover, err = c.coverService.AddCover(c.ctx, cover)
 	if err != nil {
 		c.logger.Error(err.Error())
-		tools2.SendErrorResponse(w, err, http.StatusBadRequest)
+		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -178,17 +248,28 @@ func (c *HTTPCoverHandlers) HandleAddCover(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+// @Summary Get feed covers
+// @Description Получить обложки для ленты рекомендаций
+// @Security ApiKeyAuth
+// @Tags covers
+// @Produce json
+// @Param offset query string true "Pagination offset"
+// @Param limit query string true "Pagination limit"
+// @Succes 200 {array} domains.Cover
+// @Failure 400 {object} errors2.ErrorResponse
+// @Failure 500 {object} errors2.ErrorResponse
+// @Router /feeds/covers [get]
 func (c *HTTPCoverHandlers) HandleGetFeedCovers(w http.ResponseWriter, r *http.Request) {
-	offset, limit, err := tools2.GetOffsetAndLimitFromQuery(r.URL.Query().Get("offset"), r.URL.Query().Get("limit"))
+	offset, limit, err := tools.GetOffsetAndLimitFromQuery(r.URL.Query().Get("offset"), r.URL.Query().Get("limit"))
 	if err != nil {
 		c.logger.Error(err.Error())
-		tools2.SendErrorResponse(w, err, http.StatusBadRequest)
+		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 	}
 
 	covers, err := c.coverService.GetMostLikedCovers(c.ctx, mostLikedInterval, offset, limit)
 	if err != nil {
 		c.logger.Error(fmt.Errorf("не удалось получить список популярных обложек: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusInternalServerError)
+		errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -197,25 +278,37 @@ func (c *HTTPCoverHandlers) HandleGetFeedCovers(w http.ResponseWriter, r *http.R
 	}
 }
 
+// @Summary Get covers by book
+// @Description Получить обложки книги
+// @Security ApiKeyAuth
+// @Tags covers
+// @Produce json
+// @Param book_id path string true "Book id"
+// @Param offset query string true "Pagination offset"
+// @Param limit query string true "Pagination limit"
+// @Succes 200 {array} domains.Cover
+// @Failure 400 {object} errors2.ErrorResponse
+// @Failure 500 {object} errors2.ErrorResponse
+// @Router /books/{book_id}/covers [get]
 func (c *HTTPCoverHandlers) HandleGetCoversByBook(w http.ResponseWriter, r *http.Request) {
-	offset, limit, err := tools2.GetOffsetAndLimitFromQuery(r.URL.Query().Get("offset"), r.URL.Query().Get("limit"))
+	offset, limit, err := tools.GetOffsetAndLimitFromQuery(r.URL.Query().Get("offset"), r.URL.Query().Get("limit"))
 	if err != nil {
 		c.logger.Error(err.Error())
-		tools2.SendErrorResponse(w, err, http.StatusBadRequest)
+		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 	}
 
 	bookIDRaw := mux.Vars(r)["book_id"]
 	bookID, err := uuid.Parse(bookIDRaw)
 	if err != nil {
 		c.logger.Error(fmt.Errorf("ошибка преобразования строки в uuid: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusInternalServerError)
+		errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	covers, err := c.coverService.GetCoversByBook(c.ctx, bookID, offset, limit)
 	if err != nil {
 		c.logger.Error(fmt.Errorf("ошибка получения списка обложек по книге: %w", err).Error())
-		tools2.SendErrorResponse(w, err, http.StatusInternalServerError)
+		errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 

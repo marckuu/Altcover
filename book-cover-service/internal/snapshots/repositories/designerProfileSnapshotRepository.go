@@ -24,10 +24,10 @@ func NewDesignerProfileSnapshotRepository(conn *pgx.Conn) DesignerProfileSnapsho
 
 func (d *DesignerProfileSnapshotRepository) AddDesignerProfileSnapshot(ctx context.Context, profile dto.DesignerProfileSnapshot) error {
 	query := `
-	INSERT INTO designer_profile_snapshot (id, avatar_key, nickname, user_id)
-	VALUES ($1, $2, $3, $4);
+	INSERT INTO designer_profile_snapshot (avatar_key, nickname, user_id)
+	VALUES ($1, $2, $3);
 `
-	if _, err := d.connection.Exec(ctx, query, profile.ID, profile.AvatarKey, profile.Nickname, profile.UserID); err != nil {
+	if _, err := d.connection.Exec(ctx, query, profile.AvatarKey, profile.Nickname, profile.UserID); err != nil {
 		return fmt.Errorf("designer profile snapshot repo / add: %w", err)
 	}
 

@@ -1,0 +1,683 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Сервис обложек и книг",
+        "title": "Маркетплейс альтернативных обложек для книг",
+        "contact": {
+            "name": "markuu",
+            "url": "https://github.com/marckuu"
+        },
+        "version": "1.0"
+    },
+    "paths": {
+        "/books": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Создать книгу",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "books"
+                ],
+                "summary": "Add book",
+                "parameters": [
+                    {
+                        "description": "Book data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_internal_books_transport_dto.CreateBookRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Обновить книгу",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "books"
+                ],
+                "summary": "Update book",
+                "parameters": [
+                    {
+                        "description": "Book data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_internal_books_transport_dto.UpdateBookRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/books/{book_id}": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Удалить книгу",
+                "tags": [
+                    "books"
+                ],
+                "summary": "Delete book",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "book id",
+                        "name": "book_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/books/{book_id}/covers": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Получить обложки книги",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "covers"
+                ],
+                "summary": "Get covers by book",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Book id",
+                        "name": "book_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pagination offset",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pagination limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/books/{title}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Получить книгу по названию",
+                "tags": [
+                    "books"
+                ],
+                "summary": "Get book by title",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "book title",
+                        "name": "title",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/covers": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Добавить обложку",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "covers"
+                ],
+                "summary": "Add cover",
+                "parameters": [
+                    {
+                        "description": "Cover id",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_internal_covers_transport_dto.CreateCoverRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/covers/me/favorites": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Получить обложки из избранного текущего пользователя",
+                "tags": [
+                    "favorites"
+                ],
+                "summary": "Get my favorite covers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pagination offset",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pagination limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/covers/{cover_id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Получить обложку по id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "covers"
+                ],
+                "summary": "Get cover by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover id",
+                        "name": "cover_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Обновить обложку",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "covers"
+                ],
+                "summary": "Update cover",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover id",
+                        "name": "cover_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/covers/{cover_id}/favorite": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Добавить обложку в избранное",
+                "tags": [
+                    "favorites"
+                ],
+                "summary": "Add cover to favorites",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover id",
+                        "name": "cover_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/covers/{cover_id}/like": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Поставить лайк",
+                "tags": [
+                    "likes"
+                ],
+                "summary": "Set like",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cover id",
+                        "name": "cover_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/designers/me/covers": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Получить обложки текущего дизайнера",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "covers"
+                ],
+                "summary": "Get my covers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pagination offset",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pagination limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/designers/{user_id}/covers": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Получить обложки по id пользователя",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "covers"
+                ],
+                "summary": "Get covers by user ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pagination offset",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pagination limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User id",
+                        "name": "book_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/feeds/covers": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Получить обложки для ленты рекомендаций",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "covers"
+                ],
+                "summary": "Get feed covers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pagination offset",
+                        "name": "offset",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pagination limit",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "book-cover-service_core_errors.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "some error..."
+                },
+                "time": {
+                    "type": "string",
+                    "example": "2026-04-12:13:20:47"
+                }
+            }
+        },
+        "book-cover-service_internal_books_transport_dto.CreateBookRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Beauty hand painted cover for my lovely book of Ernest Hemingway"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Moveable feast pencil drawn cover"
+                }
+            }
+        },
+        "book-cover-service_internal_books_transport_dto.UpdateBookRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Anime style cover for Ernest Hemingway Moveable feast"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "-\u003e paste book's uuid \u003c-"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Moveable feast anime style cover"
+                }
+            }
+        },
+        "book-cover-service_internal_covers_transport_dto.CreateCoverRequest": {
+            "type": "object",
+            "properties": {
+                "book_id": {
+                    "type": "string",
+                    "example": "-\u003e paste book's uuid \u003c-"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Ernest Hemingway Moveable fest anime style cover"
+                },
+                "imagesKeys": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "/covers/1252"
+                    ]
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Moveable fest cover"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}
