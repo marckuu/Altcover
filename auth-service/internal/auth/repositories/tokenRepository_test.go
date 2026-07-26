@@ -5,6 +5,7 @@ import (
 	"auth-service/core/tools"
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -12,16 +13,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var testTimeout = 10 * time.Second
+
 func TestTokenRepository_AddRefreshToken(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	token := "refreshToken"
 	tokenHash, err := tools.GetTokenHash(token)
 	require.NoError(t, err)
 
-	tx, err := conn.Begin(ctx)
+	tx, err := coonPool.Begin(ctx)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
+		cancel()
 	})
 
 	tk := &TokenRepository{
@@ -46,15 +50,16 @@ func TestTokenRepository_AddRefreshToken(t *testing.T) {
 }
 
 func TestTokenRepository_GetRefreshTokenByHash(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	token := "refreshToken"
 	tokenHash, err := tools.GetTokenHash(token)
 	require.NoError(t, err)
 
-	tx, err := conn.Begin(ctx)
+	tx, err := coonPool.Begin(ctx)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
+		cancel()
 	})
 
 	tk := &TokenRepository{
@@ -74,15 +79,16 @@ func TestTokenRepository_GetRefreshTokenByHash(t *testing.T) {
 }
 
 func TestTokenRepository_DeleteRefreshToken(t *testing.T) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	token := "refreshToken"
 	tokenHash, err := tools.GetTokenHash(token)
 	require.NoError(t, err)
 
-	tx, err := conn.Begin(ctx)
+	tx, err := coonPool.Begin(ctx)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = tx.Rollback(ctx)
+		cancel()
 	})
 
 	tk := &TokenRepository{

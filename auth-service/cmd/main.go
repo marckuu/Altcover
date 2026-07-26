@@ -17,6 +17,15 @@ import (
 	"syscall"
 )
 
+// @title Маркетплейс альтернативных обложек для книг
+// @description Сервис аутентификации
+// @version 1.0
+// @contact.name markuu
+// @contact.url https://github.com/marckuu
+
+// @securityDefinitions.apiKey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 
 	addresses := []string{os.Getenv("KAFKA_BROKER1_URL"), os.Getenv("KAFKA_BROKER2_URL"), os.Getenv("KAFKA_BROKER3_URL")}
@@ -50,16 +59,16 @@ func main() {
 	}()
 
 	ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM)
-	conn, err := db.CreateConnection(ctx, os.Getenv("DB_CONN_PATH"))
+	coonPool, err := db.CreateConnPool(ctx, os.Getenv("DB_CONN_PATH"))
 	if err != nil {
 		fmt.Printf("Не удалось создать подключение к бд: %v", err)
 		return
 	}
 
-	tokenService := services2.NewTokenService(repositories.NewTokenRepository(conn), producer)
+	tokenService := services2.NewTokenService(repositories.NewTokenRepository(coonPool), producer)
 	jwtManagerCover := jwtCovers.NewJwtManagerCover(repositories.JwtManager{})
-	userService := services2.NewUserService(repositories.NewUserRepository(conn), producer, jwtManagerCover, tokenService)
-	designerProfileService := services.NewDesignerProfileService(repositories2.NewDesignerProfileRepository(conn), producer)
+	userService := services2.NewUserService(repositories.NewUserRepository(coonPool), producer, jwtManagerCover, tokenService)
+	designerProfileService := services.NewDesignerProfileService(repositories2.NewDesignerProfileRepository(coonPool), producer)
 
 	serverManager := NewServerManager(
 		tokenService,

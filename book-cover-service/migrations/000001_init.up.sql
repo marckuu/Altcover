@@ -1,11 +1,11 @@
 CREATE TABLE book (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    title VARCHAR(300) NOT NULL,
+    title VARCHAR(300) NOT NULL UNIQUE,
     description VARCHAR(300)
 );
 
 CREATE TABLE designer_profile_snapshot (
-    id UUID PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     avatar_key TEXT,
     nickname VARCHAR(60),
     user_id UUID NOT NULL UNIQUE

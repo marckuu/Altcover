@@ -12,6 +12,10 @@ import (
 	"fmt"
 	"net/http"
 
+	httpSwagger "github.com/swaggo/http-swagger"
+
+	_ "auth-service/docs"
+
 	"github.com/gorilla/mux"
 )
 
@@ -38,6 +42,9 @@ func NewServerManager(tokenService servicesInterfaces.TokenService,
 
 func (s *ServerManager) StartServer() {
 	router := mux.NewRouter()
+
+	router.PathPrefix("/swagger/").
+		Handler(httpSwagger.WrapHandler)
 
 	router.
 		Path("/auth/register").

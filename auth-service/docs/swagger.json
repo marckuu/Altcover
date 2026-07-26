@@ -1,0 +1,346 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Сервис аутентификации",
+        "title": "Маркетплейс альтернативных обложек для книг",
+        "contact": {
+            "name": "markuu",
+            "url": "https://github.com/marckuu"
+        },
+        "version": "1.0"
+    },
+    "paths": {
+        "/auth/login": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Вход в существующий аккаунт",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login",
+                "parameters": [
+                    {
+                        "description": "Login Data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_internal_auth_transport_dto.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Считавает Refresh token из cookie и выходит из аккаунта",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Logout",
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/refresh": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Считавает Refresh token из cookie и обновляет его",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Refresh",
+                "responses": {
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "description": "Регистрирует нового пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register",
+                "parameters": [
+                    {
+                        "description": "Register Data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_internal_auth_transport_dto.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/designer_profiles/me": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Получить профиль дизайнера текущего пользователя",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "designer profiles"
+                ],
+                "summary": "Get my designer profile",
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Создать профиль дизайнера для текущего пользователя",
+                "tags": [
+                    "designer profiles"
+                ],
+                "summary": "Create my designer profile",
+                "parameters": [
+                    {
+                        "description": "Designer profile",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_internal_designerProfiles_transport_dto.CreteDesignerProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Удаляет профиль дизайнера текущего пользователя",
+                "tags": [
+                    "designer profiles"
+                ],
+                "summary": "Delete my designer profile",
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Обновляет профиль дизайнера текущего пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "designer profiles"
+                ],
+                "summary": "Update designer profile",
+                "parameters": [
+                    {
+                        "description": "Designer profile",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_internal_designerProfiles_transport_dto.UpdateDesignerProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_core_errors.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/auth-service_core_errors.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "auth-service_core_errors.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "some error..."
+                },
+                "time": {
+                    "type": "string",
+                    "example": "2026-04-12:13:20:47"
+                }
+            }
+        },
+        "auth-service_internal_auth_transport_dto.LoginRequest": {
+            "type": "object",
+            "properties": {
+                "nickname": {
+                    "type": "string",
+                    "example": "Paul"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "1234#678"
+                }
+            }
+        },
+        "auth-service_internal_designerProfiles_transport_dto.CreteDesignerProfileRequest": {
+            "type": "object",
+            "properties": {
+                "avatarKey": {
+                    "description": "Нужно будет настроить работу с minio",
+                    "type": "string",
+                    "example": "designer_profile/avatars/1542"
+                },
+                "nickname": {
+                    "type": "string",
+                    "example": "Tom"
+                }
+            }
+        },
+        "auth-service_internal_designerProfiles_transport_dto.UpdateDesignerProfileRequest": {
+            "type": "object",
+            "properties": {
+                "avatarKey": {
+                    "description": "Нужно будет настроить работу с minio",
+                    "type": "string",
+                    "example": "designer_profiles/avatars/1512"
+                },
+                "nickname": {
+                    "type": "string",
+                    "example": "Dan"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

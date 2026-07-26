@@ -22,16 +22,21 @@ func NewBookRepository(conn *pgx.Conn) BookRepository {
 	}
 }
 
-func (b *BookRepository) AddBook(ctx context.Context, book domains.Book) error {
+func (b *BookRepository) AddBook(ctx context.Context, book domains.Book) (domains.Book, error) {
 	query := `
 	INSERT INTO book (title, description)
-	VALUES ($1, $2);
+	VALUES ($1, $2)
+	RETURNING id, title, description;
 `
-	if _, err := b.connection.Exec(ctx, query, book.Title, book.Description); err != nil {
-		return fmt.Errorf("book repo / add: %w", err)
+	resultRow := b.connection.QueryRow(ctx, query, book.Title, book.Description)
+
+	var savedBook domains.Book
+
+	if err := resultRow.Scan(&savedBook.ID, &savedBook.Title, &savedBook.Description); err != nil {
+		return domains.Book{}, fmt.Errorf("book repo / get by id: %w", err)
 	}
 
-	return nil
+	return savedBook, nil
 }
 
 func (b *BookRepository) GetBookByID(ctx context.Context, bookID int64) (domains.Book, error) {
@@ -46,6 +51,26 @@ func (b *BookRepository) GetBookByID(ctx context.Context, bookID int64) (domains
 
 	if err := resultRow.Scan(&book.ID, &book.Title, &book.Description); err != nil {
 		return domains.Book{}, fmt.Errorf("book repo / get by id: %w", err)
+	}
+
+	return book, nil
+}
+
+func (b *BookRepository) GetBookByTitle(ctx context.Context, title string) (domains.Book, error) {
+	query := `
+	SELECT id, title, description
+	FROM book
+	WHERE title = $1;
+`
+	resultRow := b.connection.QueryRow(ctx, query, title)
+
+	var book domains.Book
+
+	if err := resultRow.Scan(&book.ID, &book.Title, &book.Description); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domains.Book{}, errBookNotFound
+		}
+		return domains.Book{}, fmt.Errorf("book repo / get by title: %w", err)
 	}
 
 	return book, nil
@@ -84,22 +109,25 @@ func (b *BookRepository) GetBooks(ctx context.Context, offset int, limit int) ([
 	return books, nil
 }
 
-func (b *BookRepository) UpdateBook(ctx context.Context, book domains.Book) error {
+func (b *BookRepository) UpdateBook(ctx context.Context, book domains.Book) (domains.Book, error) {
 	query := `
 	UPDATE book
 	SET title = $1, description = $2
-	WHERE id = $3;
+	WHERE id = $3
+	RETURNING id, title, description;
 `
-	tag, err := b.connection.Exec(ctx, query, book.Title, book.Description, book.ID)
-	if err != nil {
-		return fmt.Errorf("book repo / update: %w", err)
+	resultRow := b.connection.QueryRow(ctx, query, book.Title, book.Description, book.ID)
+
+	var savedBook domains.Book
+
+	if err := resultRow.Scan(&savedBook.ID, &savedBook.Title, &savedBook.Description); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domains.Book{}, errBookNotFound
+		}
+		return domains.Book{}, fmt.Errorf("book repo / update book: %w", err)
 	}
 
-	if tag.RowsAffected() == 0 {
-		return errBookNotFound
-	}
-
-	return nil
+	return savedBook, nil
 }
 
 func (b *BookRepository) DeleteBook(ctx context.Context, bookID uuid.UUID) error {

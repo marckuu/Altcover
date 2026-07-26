@@ -15,7 +15,7 @@ type TokenRepository struct {
 	connection db.Database
 }
 
-func NewTokenRepository(conn *pgx.Conn) *TokenRepository {
+func NewTokenRepository(conn db.Database) *TokenRepository {
 	return &TokenRepository{
 		connection: conn,
 	}

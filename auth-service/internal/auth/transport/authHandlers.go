@@ -34,6 +34,16 @@ func NewHTTPAuthHandler(tokenService servicesInterfaces.TokenService,
 	}
 }
 
+// @Summary Register
+// @Description Регистрирует нового пользователя
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body dto.LoginRequest true "Register Data"
+// @Succes 201
+// @Failure 400 {object} coreErrors.ErrorResponse
+// @Failure 500 {object} coreErrors.ErrorResponse
+// @Router /auth/register [post]
 func (a *HTTPAuthHandlers) HandleRegister(w http.ResponseWriter, r *http.Request) {
 	var loginRequest dto.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&loginRequest); err != nil {
@@ -48,9 +58,19 @@ func (a *HTTPAuthHandlers) HandleRegister(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 }
 
+// @Summary Login
+// @Description Вход в существующий аккаунт
+// @Security ApiKeyAuth
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body dto.LoginRequest true "Login Data"
+// @Succes 201 {object} dto.TokenResponse
+// @Failure 400 {object} coreErrors.ErrorResponse
+// @Router /auth/login [post]
 func (a *HTTPAuthHandlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	var loginRequest dto.LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&loginRequest); err != nil {
@@ -76,14 +96,23 @@ func (a *HTTPAuthHandlers) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   60 * 60 * 24 * 30,
 	})
 
-	err = json.NewEncoder(w).Encode(map[string]string{
-		"access_token": tokenPair.AccessToken,
-	})
+	err = json.NewEncoder(w).Encode(
+		dto.TokenResponse{
+			AccessToken: tokenPair.AccessToken,
+		})
 	if err != nil {
 		a.logger.Error(fmt.Errorf("не удалось отправить access токен в ответе: %w", err).Error())
 	}
 }
 
+// @Summary Refresh
+// @Description Считавает Refresh token из cookie и обновляет его
+// @Security ApiKeyAuth
+// @Tags auth
+// @Produce json
+// @Succes 200 [object} dto.TokenResponse
+// @Failure 401 {object} coreErrors.ErrorResponse
+// @Router /auth/refresh [post]
 func (a *HTTPAuthHandlers) HandleRefresh(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
@@ -94,14 +123,23 @@ func (a *HTTPAuthHandlers) HandleRefresh(w http.ResponseWriter, r *http.Request)
 
 	accessToken, err := a.userService.Refresh(a.ctx, cookie.Value)
 
-	err = json.NewEncoder(w).Encode(map[string]string{
-		"access_token": accessToken,
+	err = json.NewEncoder(w).Encode(dto.TokenResponse{
+		AccessToken: accessToken,
 	})
 	if err != nil {
 		a.logger.Error(fmt.Errorf("не удалось отправить access токен: %w", err).Error())
 	}
 }
 
+// @Summary Logout
+// @Description Считавает Refresh token из cookie и выходит из аккаунта
+// @Security ApiKeyAuth
+// @Tags auth
+// @Produce json
+// @Succes 200
+// @Failure 400 {object} coreErrors.ErrorResponse
+// @Failure 500 {object} coreErrors.ErrorResponse
+// @Router /auth/logout [post]
 func (a *HTTPAuthHandlers) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {

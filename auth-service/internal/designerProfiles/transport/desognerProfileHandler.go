@@ -6,6 +6,7 @@ import (
 	logs "auth-service/core/logger"
 	"auth-service/core/middleware"
 	"auth-service/internal/designerProfiles/services/interfaces"
+	"auth-service/internal/designerProfiles/transport/dto"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -28,6 +29,16 @@ func NewHTTPDesignerProfileHandlers(designerProfileService interfaces.DesignerPr
 	}
 }
 
+// @Summary Create my designer profile
+// @Description Создать профиль дизайнера для текущего пользователя
+// @Tags designer profiles
+// @Security ApiKeyAuth
+// Accept json
+// @Param request body dto.CreteDesignerProfileRequest true "Designer profile"
+// @Succes 200
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Router /designer_profiles/me [post]
 func (d *HTTPDesignerProfileHandlers) HandleCreateMyDesignerProfile(w http.ResponseWriter, r *http.Request) {
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
@@ -36,25 +47,45 @@ func (d *HTTPDesignerProfileHandlers) HandleCreateMyDesignerProfile(w http.Respo
 		return
 	}
 
-	var designerProfile domains.DesignerProfile
+	var createDesignerProfileRequest dto.CreteDesignerProfileRequest
 
-	if err = json.NewDecoder(r.Body).Decode(&designerProfile); err != nil {
+	if err = json.NewDecoder(r.Body).Decode(&createDesignerProfileRequest); err != nil {
 		d.logger.Error(fmt.Errorf("не удалось распознать тело запроса: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	if err = d.designerProfileService.CreateDesignerProfileToUser(d.ctx, userID, designerProfile); err != nil {
+	designerProfile := domains.DesignerProfile{
+		Nickname:  createDesignerProfileRequest.Nickname,
+		AvatarKey: createDesignerProfileRequest.AvatarKey,
+		UserID:    userID,
+	}
+	savedProfile, err := d.designerProfileService.CreateDesignerProfileToUser(d.ctx, userID, designerProfile)
+	if err != nil {
 		d.logger.Error(err.Error())
 		errors.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
+
+	if err = json.NewEncoder(w).Encode(savedProfile); err != nil {
+		d.logger.Error(fmt.Errorf("не удалось отправить ответ с профилем дизайнера: %w", err).Error())
+	}
 }
 
+// @Summary Update designer profile
+// @Description Обновляет профиль дизайнера текущего пользователя
+// @Tags designer profiles
+// @Security ApiKeyAuth
+// @Accept json
+// @Param request body dto.UpdateDesignerProfileRequest true "Designer profile"
+// @Succes 200
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Router /designer_profiles/me [patch]
 func (d *HTTPDesignerProfileHandlers) HandleUpdateMyDesignerProfile(w http.ResponseWriter, r *http.Request) {
-	var newDesignerProfile domains.DesignerProfile
+	var updateDesignerProfileRequest dto.UpdateDesignerProfileRequest
 
-	if err := json.NewDecoder(r.Body).Decode(&newDesignerProfile); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&updateDesignerProfileRequest); err != nil {
 		d.logger.Error(fmt.Errorf("не удалось распознать тело запроса: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
@@ -67,13 +98,31 @@ func (d *HTTPDesignerProfileHandlers) HandleUpdateMyDesignerProfile(w http.Respo
 		return
 	}
 
-	if err = d.designerProfileService.UpdateDesignerProfileToUser(d.ctx, userID, newDesignerProfile); err != nil {
+	designerProfile := domains.DesignerProfile{
+		Nickname:  updateDesignerProfileRequest.Nickname,
+		AvatarKey: updateDesignerProfileRequest.Nickname,
+	}
+	savedProfile, err := d.designerProfileService.UpdateDesignerProfileToUser(d.ctx, userID, designerProfile)
+	if err != nil {
 		d.logger.Error(err.Error())
 		errors.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
+
+	if err = json.NewEncoder(w).Encode(savedProfile); err != nil {
+		d.logger.Error(fmt.Errorf("не удалось отправить ответ с профилем дизайнера: %w", err).Error())
+	}
 }
 
+// @Summary Get my designer profile
+// @Description Получить профиль дизайнера текущего пользователя
+// @Tags designer profiles
+// @Security ApiKeyAuth
+// @Produce json
+// @Succes 200
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Router /designer_profiles/me [get]
 func (d *HTTPDesignerProfileHandlers) HandleGetMyDesignerProfile(w http.ResponseWriter, r *http.Request) {
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {
@@ -94,6 +143,14 @@ func (d *HTTPDesignerProfileHandlers) HandleGetMyDesignerProfile(w http.Response
 	}
 }
 
+// @Summary Delete my designer profile
+// @Description Удаляет профиль дизайнера текущего пользователя
+// @Tags designer profiles
+// @Security ApiKeyAuth
+// @Succes 200
+// @Failure 400 {object} errors.ErrorResponse
+// @Failure 500 {object} errors.ErrorResponse
+// @Router /designer_profiles/me [delete]
 func (d *HTTPDesignerProfileHandlers) HandleDeleteMyDesignerProfile(w http.ResponseWriter, r *http.Request) {
 	userID, err := middleware.GetUserIDFromContext(r.Context())
 	if err != nil {

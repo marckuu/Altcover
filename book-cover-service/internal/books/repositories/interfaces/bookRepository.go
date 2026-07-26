@@ -9,6 +9,7 @@ import (
 
 type BookRepository interface {
 	DeleteBook(ctx context.Context, bookID uuid.UUID) error
-	AddBook(ctx context.Context, book domains.Book) error
-	UpdateBook(ctx context.Context, book domains.Book) error
+	AddBook(ctx context.Context, book domains.Book) (domains.Book, error)
+	UpdateBook(ctx context.Context, book domains.Book) (domains.Book, error)
+	GetBookByTitle(ctx context.Context, title string) (domains.Book, error)
 }

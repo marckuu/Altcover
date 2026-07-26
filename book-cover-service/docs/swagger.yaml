@@ -1,0 +1,460 @@
+definitions:
+  book-cover-service_core_errors.ErrorResponse:
+    properties:
+      message:
+        example: some error...
+        type: string
+      time:
+        example: 2026-04-12:13:20:47
+        type: string
+    type: object
+  book-cover-service_internal_books_transport_dto.CreateBookRequest:
+    properties:
+      description:
+        example: Beauty hand painted cover for my lovely book of Ernest Hemingway
+        type: string
+      title:
+        example: Moveable feast pencil drawn cover
+        type: string
+    type: object
+  book-cover-service_internal_books_transport_dto.UpdateBookRequest:
+    properties:
+      description:
+        example: Anime style cover for Ernest Hemingway Moveable feast
+        type: string
+      id:
+        example: -> paste book's uuid <-
+        type: string
+      title:
+        example: Moveable feast anime style cover
+        type: string
+    type: object
+  book-cover-service_internal_covers_transport_dto.CreateCoverRequest:
+    properties:
+      book_id:
+        example: -> paste book's uuid <-
+        type: string
+      description:
+        example: Ernest Hemingway Moveable fest anime style cover
+        type: string
+      imagesKeys:
+        example:
+        - /covers/1252
+        items:
+          type: string
+        type: array
+      status:
+        example: 0
+        type: integer
+      title:
+        example: Moveable fest cover
+        type: string
+    type: object
+  book-cover-service_internal_covers_transport_dto.UpdateCoverRequest:
+    properties:
+      description:
+        example: Ernest Hemingway Moveable fest anime style cover
+        type: string
+      imagesKeys:
+        example:
+        - /covers/1252
+        items:
+          type: string
+        type: array
+      status:
+        example: 0
+        type: integer
+      title:
+        example: Moveable fest cover
+        type: string
+    type: object
+info:
+  contact:
+    name: markuu
+    url: https://github.com/marckuu
+  description: Сервис обложек и книг
+  title: Маркетплейс альтернативных обложек для книг
+  version: "1.0"
+paths:
+  /books:
+    patch:
+      consumes:
+      - application/json
+      description: Обновить книгу
+      parameters:
+      - description: Book data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/book-cover-service_internal_books_transport_dto.UpdateBookRequest'
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update book
+      tags:
+      - books
+    post:
+      consumes:
+      - application/json
+      description: Создать книгу
+      parameters:
+      - description: Book data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/book-cover-service_internal_books_transport_dto.CreateBookRequest'
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Add book
+      tags:
+      - books
+  /books/{book_id}:
+    delete:
+      description: Удалить книгу
+      parameters:
+      - description: book id
+        in: path
+        name: book_id
+        required: true
+        type: string
+      responses:
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete book
+      tags:
+      - books
+  /books/{book_id}/covers:
+    get:
+      description: Получить обложки книги
+      parameters:
+      - description: Book id
+        in: path
+        name: book_id
+        required: true
+        type: string
+      - description: Pagination offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: Pagination limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get covers by book
+      tags:
+      - covers
+  /books/{title}:
+    get:
+      description: Получить книгу по названию
+      parameters:
+      - description: book title
+        in: path
+        name: title
+        required: true
+        type: string
+      responses:
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get book by title
+      tags:
+      - books
+  /covers:
+    post:
+      consumes:
+      - application/json
+      description: Добавить обложку
+      parameters:
+      - description: Cover id
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/book-cover-service_internal_covers_transport_dto.CreateCoverRequest'
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Add cover
+      tags:
+      - covers
+  /covers/{cover_id}:
+    get:
+      description: Получить обложку по id
+      parameters:
+      - description: Cover id
+        in: path
+        name: cover_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get cover by id
+      tags:
+      - covers
+    patch:
+      description: Обновить обложку
+      parameters:
+      - description: Cover id
+        in: path
+        name: cover_id
+        required: true
+        type: string
+      - description: New cover
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/book-cover-service_internal_covers_transport_dto.UpdateCoverRequest'
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update cover
+      tags:
+      - covers
+  /covers/{cover_id}/favorite:
+    post:
+      description: Добавить обложку в избранное
+      parameters:
+      - description: Cover id
+        in: path
+        name: cover_id
+        required: true
+        type: string
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Add cover to favorites
+      tags:
+      - favorites
+  /covers/{cover_id}/like:
+    post:
+      description: Поставить лайк
+      parameters:
+      - description: Cover id
+        in: path
+        name: cover_id
+        required: true
+        type: string
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Set like
+      tags:
+      - likes
+  /covers/me/favorites:
+    get:
+      description: Получить обложки из избранного текущего пользователя
+      parameters:
+      - description: Pagination offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: Pagination limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get my favorite covers
+      tags:
+      - favorites
+  /designers/{user_id}/covers:
+    get:
+      description: Получить обложки по id пользователя
+      parameters:
+      - description: Pagination offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: Pagination limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      - description: User id
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get covers by user ID
+      tags:
+      - covers
+  /designers/me/covers:
+    get:
+      description: Получить обложки текущего дизайнера
+      parameters:
+      - description: Pagination offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: Pagination limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get my covers
+      tags:
+      - covers
+  /feeds/covers:
+    get:
+      description: Получить обложки для ленты рекомендаций
+      parameters:
+      - description: Pagination offset
+        in: query
+        name: offset
+        required: true
+        type: string
+      - description: Pagination limit
+        in: query
+        name: limit
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/book-cover-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get feed covers
+      tags:
+      - covers
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
