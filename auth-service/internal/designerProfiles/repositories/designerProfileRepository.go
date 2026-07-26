@@ -23,16 +23,27 @@ func NewDesignerProfileRepository(conn db.Database) *DesignerProfileRepository {
 	}
 }
 
-func (d *DesignerProfileRepository) AddDesignerProfile(ctx context.Context, profile domains.DesignerProfile) error {
+func (d *DesignerProfileRepository) AddDesignerProfile(ctx context.Context, profile domains.DesignerProfile) (domains.DesignerProfile, error) {
 	query := `
 	INSERT INTO designer_profile (user_id, avatar_key, nickname)
-	VALUES ($1, $2, $3);
+	VALUES ($1, $2, $3)
+	RETURNING id, user_id, avatar_key, nickname;
 `
-	if _, err := d.connection.Exec(ctx, query, profile.UserID, profile.AvatarKey, profile.Nickname); err != nil {
-		return fmt.Errorf("designer profile repo -> add: %w", err)
+	resultRow := d.connection.QueryRow(ctx, query,
+		profile.UserID,
+		profile.AvatarKey,
+		profile.Nickname)
+
+	var designerProfile domains.DesignerProfile
+
+	if err := resultRow.Scan(&designerProfile.ID, &designerProfile.UserID, &designerProfile.AvatarKey, &designerProfile.Nickname); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domains.DesignerProfile{}, errDesignerProfileNotFound
+		}
+		return domains.DesignerProfile{}, fmt.Errorf("designer profile repo -> add: %w", err)
 	}
 
-	return nil
+	return designerProfile, nil
 }
 
 func (d *DesignerProfileRepository) GetDesignerProfileByID(ctx context.Context, profileID int64) (domains.DesignerProfile, error) {
@@ -86,23 +97,29 @@ func (d *DesignerProfileRepository) GetDesignersProfiles(ctx context.Context, of
 	return profiles, nil
 }
 
-func (d *DesignerProfileRepository) UpdateDesignerProfile(ctx context.Context, profile domains.DesignerProfile) error {
+func (d *DesignerProfileRepository) UpdateDesignerProfile(ctx context.Context, profile domains.DesignerProfile) (domains.DesignerProfile, error) {
 	query := `
 	UPDATE designer_profile
 	SET avatar_key = $1, 
 		nickname = $2
-	WHERE id = $3;
+	WHERE id = $3
+	RETURNING id, user_id, avatar_key, nickname;
 `
-	tag, err := d.connection.Exec(ctx, query, profile.AvatarKey, profile.Nickname, profile.ID)
-	if err != nil {
-		return fmt.Errorf("designer profile repo -> update: %w", err)
+	resultRow := d.connection.QueryRow(ctx, query,
+		profile.AvatarKey,
+		profile.Nickname,
+		profile.ID)
+
+	var designerProfile domains.DesignerProfile
+
+	if err := resultRow.Scan(&designerProfile.ID, &designerProfile.UserID, &designerProfile.AvatarKey, &designerProfile.Nickname); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domains.DesignerProfile{}, errDesignerProfileNotFound
+		}
+		return domains.DesignerProfile{}, fmt.Errorf("designer profile repo -> add: %w", err)
 	}
 
-	if tag.RowsAffected() == 0 {
-		return errDesignerProfileNotFound
-	}
-
-	return nil
+	return designerProfile, nil
 }
 
 func (d *DesignerProfileRepository) DeleteDesignerProfile(ctx context.Context, profileID uuid.UUID) error {

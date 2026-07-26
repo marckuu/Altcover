@@ -365,6 +365,15 @@ const docTemplate = `{
                         "name": "cover_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "New cover",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/book-cover-service_internal_covers_transport_dto.UpdateCoverRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -537,7 +546,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "User id",
-                        "name": "book_id",
+                        "name": "user_id",
                         "in": "path",
                         "required": true
                     }
@@ -657,6 +666,32 @@ const docTemplate = `{
                     "type": "string",
                     "example": "-\u003e paste book's uuid \u003c-"
                 },
+                "description": {
+                    "type": "string",
+                    "example": "Ernest Hemingway Moveable fest anime style cover"
+                },
+                "imagesKeys": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "/covers/1252"
+                    ]
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Moveable fest cover"
+                }
+            }
+        },
+        "book-cover-service_internal_covers_transport_dto.UpdateCoverRequest": {
+            "type": "object",
+            "properties": {
                 "description": {
                     "type": "string",
                     "example": "Ernest Hemingway Moveable fest anime style cover"

@@ -60,10 +60,15 @@ func (d *HTTPDesignerProfileHandlers) HandleCreateMyDesignerProfile(w http.Respo
 		AvatarKey: createDesignerProfileRequest.AvatarKey,
 		UserID:    userID,
 	}
-	if err = d.designerProfileService.CreateDesignerProfileToUser(d.ctx, userID, designerProfile); err != nil {
+	savedProfile, err := d.designerProfileService.CreateDesignerProfileToUser(d.ctx, userID, designerProfile)
+	if err != nil {
 		d.logger.Error(err.Error())
 		errors.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
+	}
+
+	if err = json.NewEncoder(w).Encode(savedProfile); err != nil {
+		d.logger.Error(fmt.Errorf("не удалось отправить ответ с профилем дизайнера: %w", err).Error())
 	}
 }
 
@@ -97,10 +102,15 @@ func (d *HTTPDesignerProfileHandlers) HandleUpdateMyDesignerProfile(w http.Respo
 		Nickname:  updateDesignerProfileRequest.Nickname,
 		AvatarKey: updateDesignerProfileRequest.Nickname,
 	}
-	if err = d.designerProfileService.UpdateDesignerProfileToUser(d.ctx, userID, designerProfile); err != nil {
+	savedProfile, err := d.designerProfileService.UpdateDesignerProfileToUser(d.ctx, userID, designerProfile)
+	if err != nil {
 		d.logger.Error(err.Error())
 		errors.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
+	}
+
+	if err = json.NewEncoder(w).Encode(savedProfile); err != nil {
+		d.logger.Error(fmt.Errorf("не удалось отправить ответ с профилем дизайнера: %w", err).Error())
 	}
 }
 

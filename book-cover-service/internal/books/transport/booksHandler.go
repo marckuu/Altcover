@@ -52,13 +52,14 @@ func (b *HTTPBookHandlers) HandleAddBook(w http.ResponseWriter, r *http.Request)
 		Title:       createBookRequest.Title,
 		Description: createBookRequest.Description,
 	}
-	if err := b.bookService.AddBook(b.ctx, book); err != nil {
+	savedBook, err := b.bookService.AddBook(b.ctx, book)
+	if err != nil {
 		b.logger.Error(fmt.Errorf("ошибка при сохранении книги: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(book); err != nil {
+	if err = json.NewEncoder(w).Encode(savedBook); err != nil {
 		b.logger.Error(fmt.Errorf("ошибка при записи ответа с созданной книгой: %w", err).Error())
 	}
 }
@@ -87,10 +88,15 @@ func (b *HTTPBookHandlers) HandleUpdateBook(w http.ResponseWriter, r *http.Reque
 		Title:       updateBookRequest.Title,
 		Description: updateBookRequest.Description,
 	}
-	if err := b.bookService.UpdateBook(b.ctx, book); err != nil {
+	savedBook, err := b.bookService.UpdateBook(b.ctx, book)
+	if err != nil {
 		b.logger.Error(fmt.Errorf("ошибка при сохранении книги: %w", err).Error())
 		errors.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
+	}
+
+	if err = json.NewEncoder(w).Encode(savedBook); err != nil {
+		b.logger.Error(fmt.Errorf("ошибка при записи ответа с созданной книгой: %w", err).Error())
 	}
 }
 

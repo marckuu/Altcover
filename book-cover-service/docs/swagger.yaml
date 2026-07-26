@@ -50,6 +50,24 @@ definitions:
         example: Moveable fest cover
         type: string
     type: object
+  book-cover-service_internal_covers_transport_dto.UpdateCoverRequest:
+    properties:
+      description:
+        example: Ernest Hemingway Moveable fest anime style cover
+        type: string
+      imagesKeys:
+        example:
+        - /covers/1252
+        items:
+          type: string
+        type: array
+      status:
+        example: 0
+        type: integer
+      title:
+        example: Moveable fest cover
+        type: string
+    type: object
 info:
   contact:
     name: markuu
@@ -243,6 +261,12 @@ paths:
         name: cover_id
         required: true
         type: string
+      - description: New cover
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/book-cover-service_internal_covers_transport_dto.UpdateCoverRequest'
       produces:
       - application/json
       responses:
@@ -349,7 +373,7 @@ paths:
         type: string
       - description: User id
         in: path
-        name: book_id
+        name: user_id
         required: true
         type: string
       produces:

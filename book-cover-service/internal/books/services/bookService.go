@@ -18,18 +18,20 @@ func NewBookService(bookRepository repositoryInterfaces.BookRepository) *BookSer
 	}
 }
 
-func (b *BookService) AddBook(ctx context.Context, book domains.Book) error {
-	if err := b.bookRepository.AddBook(ctx, book); err != nil {
-		return err
+func (b *BookService) AddBook(ctx context.Context, book domains.Book) (domains.Book, error) {
+	savedBook, err := b.bookRepository.AddBook(ctx, book)
+	if err != nil {
+		return domains.Book{}, err
 	}
-	return nil
+	return savedBook, nil
 }
 
-func (b *BookService) UpdateBook(ctx context.Context, book domains.Book) error {
-	if err := b.bookRepository.UpdateBook(ctx, book); err != nil {
-		return err
+func (b *BookService) UpdateBook(ctx context.Context, book domains.Book) (domains.Book, error) {
+	savedBook, err := b.bookRepository.UpdateBook(ctx, book)
+	if err != nil {
+		return domains.Book{}, err
 	}
-	return nil
+	return savedBook, nil
 }
 
 func (b *BookService) DeleteBook(ctx context.Context, bookID uuid.UUID) error {

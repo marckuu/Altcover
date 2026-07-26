@@ -22,12 +22,13 @@ func NewCoverRepository(conn *pgx.Conn) CoverRepository {
 	}
 }
 
-func (c *CoverRepository) AddCover(ctx context.Context, cover domains.Cover) error {
+func (c *CoverRepository) AddCover(ctx context.Context, cover domains.Cover) (domains.Cover, error) {
 	query := `
 	INSERT INTO cover (title, description, images_keys, status, user_id, book_id)
-	VALUES ($1, $2, $3, $4, $5, $6);
+	VALUES ($1, $2, $3, $4, $5, $6)
+	RETURNING id, title, description, images_keys, status, user_id, book_id;
 `
-	_, err := c.connection.Exec(ctx, query,
+	resultRow := c.connection.QueryRow(ctx, query,
 		cover.Title,
 		cover.Description,
 		cover.ImagesKeys,
@@ -35,11 +36,21 @@ func (c *CoverRepository) AddCover(ctx context.Context, cover domains.Cover) err
 		cover.UserID,
 		cover.BookID)
 
+	var savedCover domains.Cover
+
+	err := resultRow.Scan(&savedCover.ID,
+		&savedCover.Title,
+		&savedCover.Description,
+		&savedCover.ImagesKeys,
+		&savedCover.Status,
+		&savedCover.UserID,
+		&savedCover.BookID)
+
 	if err != nil {
-		return fmt.Errorf("cover repository / add: %w", err)
+		return domains.Cover{}, fmt.Errorf("cover repository / get by id: %w", err)
 	}
 
-	return nil
+	return savedCover, nil
 }
 
 func (c *CoverRepository) GetCoverByID(ctx context.Context, coverID uuid.UUID) (domains.Cover, error) {
@@ -116,31 +127,43 @@ func (c *CoverRepository) GetCovers(ctx context.Context, offset int, limit int) 
 	return covers, nil
 }
 
-func (c *CoverRepository) UpdateCover(ctx context.Context, cover domains.Cover) error {
+func (c *CoverRepository) UpdateCover(ctx context.Context, cover domains.Cover) (domains.Cover, error) {
 	query := `
 	UPDATE cover
 	SET title = $1, 
 	    description = $2,  
 	    images_keys = $3, 
 	    status = $4
-	WHERE id = $5;
+	WHERE id = $5
+	RETURNING id, title, description, images_keys, status, user_id, book_id;
 `
-	tag, err := c.connection.Exec(ctx, query,
+	resultRow := c.connection.QueryRow(ctx, query,
 		cover.Title,
 		cover.Description,
 		cover.ImagesKeys,
 		cover.Status,
 		cover.ID)
 
+	var savedCover domains.Cover
+
+	err := resultRow.Scan(&cover.ID,
+		&savedCover.Title,
+		&savedCover.Description,
+		&savedCover.ImagesKeys,
+		&savedCover.Status,
+		&savedCover.UserID,
+		&savedCover.DesignerNickname,
+		&savedCover.DesignerAvatarKey,
+		&savedCover.BookID)
+
 	if err != nil {
-		return fmt.Errorf("cover repository / update: %w", err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domains.Cover{}, errCoverNotFound
+		}
+		return domains.Cover{}, fmt.Errorf("cover repository / get by id: %w", err)
 	}
 
-	if tag.RowsAffected() == 0 {
-		return errCoverNotFound
-	}
-
-	return nil
+	return savedCover, nil
 }
 
 func (c *CoverRepository) DeleteCover(ctx context.Context, coverID uuid.UUID) error {

@@ -86,7 +86,7 @@ func (c *HTTPCoverHandlers) HandleGetMyCoversAsDesigner(w http.ResponseWriter, r
 // @Produce json
 // @Param offset query string true "Pagination offset"
 // @Param limit query string true "Pagination limit"
-// @Param book_id path string true "User id"
+// @Param user_id path string true "User id"
 // @Succes 200 {array} domains.Cover
 // @Failure 400 {object} errors2.ErrorResponse
 // @Failure 500 {object} errors2.ErrorResponse
@@ -124,6 +124,7 @@ func (c *HTTPCoverHandlers) HandleGetCoversByDesignerUserID(w http.ResponseWrite
 // @Tags covers
 // @Produce json
 // @Param cover_id path string true "Cover id"
+// @Param request body dto.UpdateCoverRequest true "New cover"
 // @Succes 200 {object} domains.Cover
 // @Failure 400 {object} errors2.ErrorResponse
 // @Failure 500 {object} errors2.ErrorResponse
@@ -236,14 +237,14 @@ func (c *HTTPCoverHandlers) HandleAddCover(w http.ResponseWriter, r *http.Reques
 		UserID:      userID,
 		BookID:      createCoverRequest.BookID,
 	}
-	cover, err = c.coverService.AddCover(c.ctx, cover)
+	savedCover, err := c.coverService.AddCover(c.ctx, cover)
 	if err != nil {
 		c.logger.Error(err.Error())
 		errors2.SendErrorResponse(w, err, http.StatusBadRequest)
 		return
 	}
 
-	if err = json.NewEncoder(w).Encode(cover); err != nil {
+	if err = json.NewEncoder(w).Encode(savedCover); err != nil {
 		c.logger.Error(fmt.Errorf("ошибка при записи ответа с созданной обложкой: %w", err).Error())
 	}
 }
@@ -271,6 +272,15 @@ func (c *HTTPCoverHandlers) HandleGetFeedCovers(w http.ResponseWriter, r *http.R
 		c.logger.Error(fmt.Errorf("не удалось получить список популярных обложек: %w", err).Error())
 		errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
 		return
+	}
+
+	if covers == nil {
+		covers, err = c.coverService.GetCovers(c.ctx, offset, limit)
+		if err != nil {
+			c.logger.Error(fmt.Errorf("не удалось получить список всех обложек: %w", err).Error())
+			errors2.SendErrorResponse(w, err, http.StatusInternalServerError)
+			return
+		}
 	}
 
 	if err = json.NewEncoder(w).Encode(covers); err != nil {

@@ -47,23 +47,20 @@ func (c *CoverService) UpdateCover(ctx context.Context, coverID uuid.UUID, userI
 		return domains.Cover{}, fmt.Errorf("дизайнер не является автором данной обложки: %w", err)
 	}
 
-	if err = c.coverRepository.UpdateCover(ctx, newCover); err != nil {
+	savedCover, err := c.coverRepository.UpdateCover(ctx, newCover)
+	if err != nil {
 		return domains.Cover{}, err
 	}
 
-	newCover.ID = coverID
-	newCover.UserID = userID
-	newCover.BookID = cover.BookID
-
-	return newCover, nil
+	return savedCover, nil
 }
 
 func (c *CoverService) AddCover(ctx context.Context, cover domains.Cover) (domains.Cover, error) {
-	if err := c.coverRepository.AddCover(ctx, cover); err != nil {
+	cover, err := c.coverRepository.AddCover(ctx, cover)
+	if err != nil {
 		return domains.Cover{}, err
 	}
-
-	return domains.Cover{}, nil
+	return cover, nil
 }
 
 func (c *CoverService) GetCoversByIDs(ctx context.Context, coversIDs []uuid.UUID) ([]domains.Cover, error) {
@@ -86,6 +83,14 @@ func (c *CoverService) GetMostLikedCovers(ctx context.Context, daysNumber int, o
 
 func (c *CoverService) GetCoversByBook(ctx context.Context, bookID uuid.UUID, offset int, limit int) ([]domains.Cover, error) {
 	covers, err := c.coverRepository.GetCoversByBook(ctx, bookID, offset, limit)
+	if err != nil {
+		return []domains.Cover{}, err
+	}
+	return covers, nil
+}
+
+func (c *CoverService) GetCovers(ctx context.Context, offset int, limit int) ([]domains.Cover, error) {
+	covers, err := c.coverRepository.GetCovers(ctx, offset, limit)
 	if err != nil {
 		return []domains.Cover{}, err
 	}

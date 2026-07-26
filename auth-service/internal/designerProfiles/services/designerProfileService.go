@@ -59,64 +59,66 @@ func (d *DesignerProfileService) DeleteDesignerProfile(ctx context.Context, prof
 	return nil
 }
 
-func (d *DesignerProfileService) CreateDesignerProfileToUser(ctx context.Context, userID uuid.UUID, designerProfile domains.DesignerProfile) error {
+func (d *DesignerProfileService) CreateDesignerProfileToUser(ctx context.Context, userID uuid.UUID, designerProfile domains.DesignerProfile) (domains.DesignerProfile, error) {
 	_, err := d.designerProfileRepository.GetDesignerProfileByUserID(ctx, userID)
 	if err == nil {
-		return fmt.Errorf("профиль дизайнера уже существует: %w", err)
+		return domains.DesignerProfile{}, fmt.Errorf("профиль дизайнера уже существует: %w", err)
 	}
 
-	if err = d.designerProfileRepository.AddDesignerProfile(ctx, designerProfile); err != nil {
-		return err
+	savedProfile, err := d.designerProfileRepository.AddDesignerProfile(ctx, designerProfile)
+	if err != nil {
+		return domains.DesignerProfile{}, err
 	}
 
 	payload, err := json.Marshal(designerProfile)
 	if err != nil {
-		return err
+		return domains.DesignerProfile{}, err
 	}
 
 	event := shared.NewKafkaEvent(shared.DesignerProfileCreated, payload)
 
 	message, err := json.Marshal(event)
 	if err != nil {
-		return err
+		return domains.DesignerProfile{}, err
 	}
 
 	if err = d.producer.Produce(message); err != nil {
-		return err
+		return domains.DesignerProfile{}, err
 	}
 
-	return nil
+	return savedProfile, nil
 }
 
-func (d *DesignerProfileService) UpdateDesignerProfileToUser(ctx context.Context, userID uuid.UUID, newDesignerProfile domains.DesignerProfile) error {
+func (d *DesignerProfileService) UpdateDesignerProfileToUser(ctx context.Context, userID uuid.UUID, newDesignerProfile domains.DesignerProfile) (domains.DesignerProfile, error) {
 	oldDesignerProfile, err := d.designerProfileRepository.GetDesignerProfileByUserID(ctx, userID)
 	if err != nil {
-		return fmt.Errorf("ошибка получения профиля дизайнера: %w", err)
+		return domains.DesignerProfile{}, fmt.Errorf("ошибка получения профиля дизайнера: %w", err)
 	}
 
 	newDesignerProfile.ID = oldDesignerProfile.ID
 
-	if err = d.designerProfileRepository.UpdateDesignerProfile(ctx, newDesignerProfile); err != nil {
-		return err
+	savedProfile, err := d.designerProfileRepository.UpdateDesignerProfile(ctx, newDesignerProfile)
+	if err != nil {
+		return domains.DesignerProfile{}, err
 	}
 
 	payload, err := json.Marshal(newDesignerProfile)
 	if err != nil {
-		return err
+		return domains.DesignerProfile{}, err
 	}
 
 	event := shared.NewKafkaEvent(shared.DesignerProfileUpdated, payload)
 
 	message, err := json.Marshal(event)
 	if err != nil {
-		return err
+		return domains.DesignerProfile{}, err
 	}
 
 	if err = d.producer.Produce(message); err != nil {
-		return err
+		return domains.DesignerProfile{}, err
 	}
 
-	return nil
+	return savedProfile, nil
 }
 
 func (d *DesignerProfileService) DeleteDesignerProfileToUser(ctx context.Context, userID uuid.UUID) error {

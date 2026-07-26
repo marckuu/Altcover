@@ -15,4 +15,5 @@ type CoverService interface {
 	UpdateCover(ctx context.Context, coverID uuid.UUID, userID uuid.UUID, newCover domains.Cover) (domains.Cover, error)
 	GetCoversByIDs(ctx context.Context, coversIDs []uuid.UUID) ([]domains.Cover, error)
 	GetMostLikedCovers(ctx context.Context, daysNumber int, offset int, limit int) ([]domains.Cover, error)
+	GetCovers(ctx context.Context, offset int, limit int) ([]domains.Cover, error)
 }
