@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"auth-service/core/enums"
 	"fmt"
 	"os"
 	"time"
@@ -14,7 +15,8 @@ var key = []byte(os.Getenv("JWT_KEY"))
 var signingMethod = jwt.SigningMethodHS256
 
 type JwtClaims struct {
-	TokenType string `json:"token_type"`
+	TokenType string     `json:"token_type"`
+	Role      enums.Role `json:"role"`
 	jwt.RegisteredClaims
 }
 type TokenPair struct {
@@ -50,7 +52,7 @@ func (j *JwtManager) IsAccessToken(claims *JwtClaims) bool {
 	return claims.TokenType == "access"
 }
 
-func (j *JwtManager) GenerateTokenPair(userID uuid.UUID) (*TokenPair, error) {
+func (j *JwtManager) GenerateTokenPair(userID uuid.UUID, userRole enums.Role) (*TokenPair, error) {
 	now := time.Now()
 
 	accessToken := jwt.NewWithClaims(signingMethod,
@@ -61,6 +63,7 @@ func (j *JwtManager) GenerateTokenPair(userID uuid.UUID) (*TokenPair, error) {
 				Issuer:    issuer,
 				ExpiresAt: jwt.NewNumericDate(now.Add(time.Minute * 15)),
 			},
+			Role: userRole,
 		})
 
 	signedAccessToken, err := accessToken.SignedString(key)
@@ -76,6 +79,7 @@ func (j *JwtManager) GenerateTokenPair(userID uuid.UUID) (*TokenPair, error) {
 				Issuer:    issuer,
 				ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 24 * 30)),
 			},
+			Role: userRole,
 		})
 
 	signedRefreshToken, err := refreshToken.SignedString(key)
@@ -89,7 +93,7 @@ func (j *JwtManager) GenerateTokenPair(userID uuid.UUID) (*TokenPair, error) {
 	}, nil
 }
 
-func (j *JwtManager) GenerateAccessToken(userID uuid.UUID) (string, error) {
+func (j *JwtManager) GenerateAccessToken(userID uuid.UUID, userRole enums.Role) (string, error) {
 	now := time.Now()
 
 	accessToken := jwt.NewWithClaims(signingMethod,
@@ -100,6 +104,7 @@ func (j *JwtManager) GenerateAccessToken(userID uuid.UUID) (string, error) {
 				Issuer:    issuer,
 				ExpiresAt: jwt.NewNumericDate(now.Add(time.Minute * 15)),
 			},
+			Role: userRole,
 		})
 
 	signedAccessToken, err := accessToken.SignedString(key)

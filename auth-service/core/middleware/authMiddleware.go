@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"auth-service/core/enums"
 	errors2 "auth-service/core/errors"
 	"auth-service/internal/auth/repositories/interfaces"
 	"context"
@@ -25,7 +26,7 @@ func NewAuthMiddleware(tokenManager interfaces.TokenManager) AuthMiddleware {
 }
 
 func GetUserIDFromContext(ctx context.Context) (uuid.UUID, error) {
-	claims := ctx.Value("claims").(*interfaces.CustomClaims)
+	claims := ctx.Value(ClaimsKey).(*interfaces.CustomClaims)
 	userID, err := uuid.Parse(claims.RegisteredClaims.Subject)
 	if err != nil {
 		return uuid.UUID{}, err
@@ -57,8 +58,8 @@ func (a *AuthMiddleware) ProcessToken(header string) (*interfaces.CustomClaims, 
 	return claims, nil
 }
 
-func (a *AuthMiddleware) Auth(handler http.Handler) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (a *AuthMiddleware) RequireRole(role enums.Role, handler http.Handler) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 
 		claims, err := a.ProcessToken(authHeader)
@@ -67,9 +68,13 @@ func (a *AuthMiddleware) Auth(handler http.Handler) func(w http.ResponseWriter, 
 			return
 		}
 
+		if claims.Role < role {
+			errors2.SendErrorResponse(w, errors.New("недостаточно прав для выполнения запроса"), http.StatusUnauthorized)
+			return
+		}
+
 		ctx := context.WithValue(r.Context(), ClaimsKey, claims)
 		r = r.WithContext(ctx)
-
 		handler.ServeHTTP(w, r)
-	}
+	})
 }

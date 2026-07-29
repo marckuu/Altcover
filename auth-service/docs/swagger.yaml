@@ -212,6 +212,55 @@ paths:
       summary: Create my designer profile
       tags:
       - designer profiles
+  /role/{user_id}:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает роль пользователя
+      parameters:
+      - description: User id
+        in: path
+        name: user_id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get role
+      tags:
+      - admin
+    patch:
+      consumes:
+      - application/json
+      description: Изменяет роль пользователя
+      parameters:
+      - description: User id
+        in: path
+        name: user_id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/auth-service_core_errors.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Change role
+      tags:
+      - admin
 securityDefinitions:
   ApiKeyAuth:
     in: header

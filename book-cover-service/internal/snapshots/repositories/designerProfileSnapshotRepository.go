@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"book-cover-service/core/db"
 	"book-cover-service/internal/snapshots/transport/dto"
 	"context"
 	"errors"
@@ -13,10 +14,10 @@ import (
 var errDesignerProfileSnapshotNotFound = errors.New("снимок профиля дизайнера не найден")
 
 type DesignerProfileSnapshotRepository struct {
-	connection *pgx.Conn
+	connection db.Database
 }
 
-func NewDesignerProfileSnapshotRepository(conn *pgx.Conn) DesignerProfileSnapshotRepository {
+func NewDesignerProfileSnapshotRepository(conn db.Database) DesignerProfileSnapshotRepository {
 	return DesignerProfileSnapshotRepository{
 		connection: conn,
 	}

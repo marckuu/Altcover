@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	enums2 "book-cover-service/core/enums"
 	"errors"
 	"fmt"
 	"os"
@@ -29,6 +30,7 @@ type TokenPair struct {
 type CustomClaims struct {
 	TokenType string `json:"token_type"`
 	jwt.RegisteredClaims
+	Role enums2.Role
 }
 
 // Метод ParseWithClaims получает возвращаемый из аноним функции ключ, высчитывает подпись и проверяет
@@ -62,7 +64,7 @@ func (j *JWTManager) IsAccessToken(claims *CustomClaims) bool {
 	return claims.TokenType == "access"
 }
 
-func (j *JWTManager) GenerateTokenPair(userID uuid.UUID) (*TokenPair, error) {
+func (j *JWTManager) GenerateTokenPair(userID uuid.UUID, userRole enums2.Role) (*TokenPair, error) {
 	now := time.Now()
 
 	accessToken := jwt.NewWithClaims(signingMethod,
@@ -73,6 +75,7 @@ func (j *JWTManager) GenerateTokenPair(userID uuid.UUID) (*TokenPair, error) {
 				Issuer:    issuer,
 				ExpiresAt: jwt.NewNumericDate(now.Add(time.Minute * 15)),
 			},
+			Role: userRole,
 		})
 
 	signedAccessToken, err := accessToken.SignedString(key)
@@ -88,6 +91,7 @@ func (j *JWTManager) GenerateTokenPair(userID uuid.UUID) (*TokenPair, error) {
 				Issuer:    issuer,
 				ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 24 * 30)),
 			},
+			Role: userRole,
 		})
 
 	signedRefreshToken, err := refreshToken.SignedString(key)
@@ -101,7 +105,7 @@ func (j *JWTManager) GenerateTokenPair(userID uuid.UUID) (*TokenPair, error) {
 	}, nil
 }
 
-func (j *JWTManager) GenerateAccessToken(userID uuid.UUID) (string, error) {
+func (j *JWTManager) GenerateAccessToken(userID uuid.UUID, userRole enums2.Role) (string, error) {
 	now := time.Now()
 
 	accessToken := jwt.NewWithClaims(signingMethod,
@@ -112,6 +116,7 @@ func (j *JWTManager) GenerateAccessToken(userID uuid.UUID) (string, error) {
 				Issuer:    issuer,
 				ExpiresAt: jwt.NewNumericDate(now.Add(time.Minute * 15)),
 			},
+			Role: userRole,
 		})
 
 	signedAccessToken, err := accessToken.SignedString(key)

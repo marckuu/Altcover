@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"book-cover-service/core/db"
 	"book-cover-service/core/domains"
 	"context"
 	"errors"
@@ -13,10 +14,10 @@ import (
 var errBookNotFound = errors.New("книга не найдена")
 
 type BookRepository struct {
-	connection *pgx.Conn
+	connection db.Database
 }
 
-func NewBookRepository(conn *pgx.Conn) BookRepository {
+func NewBookRepository(conn db.Database) BookRepository {
 	return BookRepository{
 		connection: conn,
 	}

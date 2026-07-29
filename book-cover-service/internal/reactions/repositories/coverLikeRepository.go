@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"book-cover-service/core/db"
 	"book-cover-service/core/domains"
 	"context"
 	"errors"
@@ -13,10 +14,10 @@ import (
 var errLikeNotFound = errors.New("лайк не найден")
 
 type CoverLikeRepository struct {
-	connection *pgx.Conn
+	connection db.Database
 }
 
-func NewCoverLikeRepository(conn *pgx.Conn) CoverLikeRepository {
+func NewCoverLikeRepository(conn db.Database) CoverLikeRepository {
 	return CoverLikeRepository{
 		connection: conn,
 	}

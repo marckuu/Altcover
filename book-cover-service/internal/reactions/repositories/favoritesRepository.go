@@ -1,18 +1,18 @@
 package repositories
 
 import (
+	"book-cover-service/core/db"
 	"context"
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
 
 type FavoritesRepository struct {
-	connection *pgx.Conn
+	connection db.Database
 }
 
-func NewFavoritesRepository(conn *pgx.Conn) FavoritesRepository {
+func NewFavoritesRepository(conn db.Database) FavoritesRepository {
 	return FavoritesRepository{
 		connection: conn,
 	}

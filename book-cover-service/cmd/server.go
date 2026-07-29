@@ -1,6 +1,7 @@
 package main
 
 import (
+	"book-cover-service/core/enums"
 	logs "book-cover-service/core/logger"
 	"book-cover-service/core/middleware"
 	"book-cover-service/internal/auth/repositories"
@@ -58,28 +59,36 @@ func (s *ServerManager) StartServer() {
 		Path("/books").
 		Methods("POST").
 		HandlerFunc(
-			s.middleware.Auth(http.HandlerFunc(s.bookHandlers.HandleAddBook)),
+			s.middleware.RequireRole(
+				enums.Admin,
+				http.HandlerFunc(s.bookHandlers.HandleAddBook)),
 		)
 
 	router.
 		Path("/books").
 		Methods("PATCH").
 		HandlerFunc(
-			s.middleware.Auth(http.HandlerFunc(s.bookHandlers.HandleUpdateBook)),
+			s.middleware.RequireRole(
+				enums.Admin,
+				http.HandlerFunc(s.bookHandlers.HandleUpdateBook)),
 		)
 
 	router.
 		Path("/books/{book_id}").
 		Methods("DELETE").
 		HandlerFunc(
-			s.middleware.Auth(http.HandlerFunc(s.bookHandlers.HandleDeleteBook)),
+			s.middleware.RequireRole(
+				enums.Admin,
+				http.HandlerFunc(s.bookHandlers.HandleDeleteBook)),
 		)
 
 	router.
 		Path("/books/{title}").
 		Methods("GET").
 		HandlerFunc(
-			s.middleware.Auth(http.HandlerFunc(s.bookHandlers.HandleGetBookByTitle)),
+			s.middleware.RequireRole(
+				enums.User,
+				http.HandlerFunc(s.bookHandlers.HandleGetBookByTitle)),
 		)
 
 	router.
@@ -87,7 +96,9 @@ func (s *ServerManager) StartServer() {
 		Methods("GET").
 		Queries("offset", "{offset}", "limit", "{limit}").
 		HandlerFunc(
-			s.middleware.Auth(http.HandlerFunc(s.coverHandlers.HandleGetMyCoversAsDesigner)),
+			s.middleware.RequireRole(
+				enums.Designer,
+				http.HandlerFunc(s.coverHandlers.HandleGetMyCoversAsDesigner)),
 		)
 
 	router.
@@ -95,56 +106,74 @@ func (s *ServerManager) StartServer() {
 		Methods("GET").
 		Queries("offset", "{offset}", "limit", "{limit}").
 		HandlerFunc(
-			s.middleware.Auth(
-				http.HandlerFunc(s.coverHandlers.HandleGetCoversByDesignerUserID),
-			),
+			s.middleware.RequireRole(
+				enums.User,
+				http.HandlerFunc(s.coverHandlers.HandleGetCoversByDesignerUserID)),
 		)
 
 	router.
 		Path("/covers/{cover_id}").
 		Methods("PATCH").
 		HandlerFunc(
-			s.middleware.Auth(
-				http.HandlerFunc(s.coverHandlers.HandleUpdateCover),
-			),
+			s.middleware.RequireRole(
+				enums.Designer,
+				http.HandlerFunc(s.coverHandlers.HandleUpdateCover)),
 		)
 
 	router.
 		Path("/covers/{cover_id}").
 		Methods("GET").
-		HandlerFunc(s.coverHandlers.HandleGetCoverByID)
+		HandlerFunc(
+			s.middleware.RequireRole(
+				enums.User,
+				http.HandlerFunc(s.coverHandlers.HandleGetCoverByID)),
+		)
 
 	router.
 		Path("/covers").
 		Methods("POST").
 		HandlerFunc(
-			s.middleware.Auth(http.HandlerFunc(s.coverHandlers.HandleAddCover)),
+			s.middleware.RequireRole(
+				enums.Designer,
+				http.HandlerFunc(s.coverHandlers.HandleAddCover)),
 		)
 
 	router.
 		Path("/feeds/covers").
 		Methods("GET").
 		Queries("offset", "{offset}", "limit", "{limit}").
-		HandlerFunc(s.coverHandlers.HandleGetFeedCovers)
+		HandlerFunc(
+			s.middleware.RequireRole(
+				enums.User,
+				http.HandlerFunc(s.coverHandlers.HandleGetFeedCovers)),
+		)
 
 	router.
 		Path("/books/{book_id}/covers").
 		Methods("GET").
 		Queries("offset", "{offset}", "limit", "{limit}").
-		HandlerFunc(s.coverHandlers.HandleGetCoversByBook)
+		HandlerFunc(
+			s.middleware.RequireRole(
+				enums.User,
+				http.HandlerFunc(s.coverHandlers.HandleGetCoversByBook)),
+		)
 
 	router.
 		Path("/covers/{cover_id}/like").
 		Methods("POST").
 		HandlerFunc(
-			s.middleware.Auth(http.HandlerFunc(s.coverLikeHandlers.HandleSetLike)),
+			s.middleware.RequireRole(
+				enums.User,
+				http.HandlerFunc(s.coverLikeHandlers.HandleSetLike)),
 		)
 
 	router.
 		Path("/covers/{cover_id}/favorite").
 		Methods("POST").
 		HandlerFunc(
-			s.middleware.Auth(http.HandlerFunc(s.favoritesHandlers.HandleAddCoverToFavorites)),
+			s.middleware.RequireRole(
+				enums.User,
+				http.HandlerFunc(s.favoritesHandlers.HandleAddCoverToFavorites)),
 		)
 
 	router.
@@ -152,7 +181,9 @@ func (s *ServerManager) StartServer() {
 		Methods("GET").
 		Queries("offset", "{offset}", "limit", "{limit}").
 		HandlerFunc(
-			s.middleware.Auth(http.HandlerFunc(s.favoritesHandlers.HandleGetMyFavoriteCovers)),
+			s.middleware.RequireRole(
+				enums.User,
+				http.HandlerFunc(s.favoritesHandlers.HandleGetMyFavoriteCovers)),
 		)
 
 	err := http.ListenAndServe(":9011", router)
