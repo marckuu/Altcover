@@ -53,7 +53,7 @@ func TestDesignerProfileRepository_AddDesignerProfile(t *testing.T) {
 
 	profile.UserID = userID
 
-	err = d.AddDesignerProfile(ctx, profile)
+	_, err = d.AddDesignerProfile(ctx, profile)
 	require.NoError(t, err)
 
 	receivedProfile := domains.DesignerProfile{}
@@ -175,7 +175,7 @@ func TestDesignerProfileRepository_UpdateDesignerProfile(t *testing.T) {
 
 	newProfile.ID = profileID
 
-	err = d.UpdateDesignerProfile(ctx, newProfile)
+	_, err = d.UpdateDesignerProfile(ctx, newProfile)
 	require.NoError(t, err)
 
 	receivedProfile := domains.DesignerProfile{}

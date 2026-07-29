@@ -6,6 +6,7 @@ package interfaces
 
 import (
 	"auth-service/core/domains"
+	"auth-service/core/enums"
 	"context"
 
 	"github.com/google/uuid"
@@ -40,8 +41,8 @@ func (_m *MockTokenManager) EXPECT() *MockTokenManager_Expecter {
 }
 
 // GenerateAccessToken provides a mock function for the type MockTokenManager
-func (_mock *MockTokenManager) GenerateAccessToken(userID uuid.UUID) (string, error) {
-	ret := _mock.Called(userID)
+func (_mock *MockTokenManager) GenerateAccessToken(userID uuid.UUID, userRole enums.Role) (string, error) {
+	ret := _mock.Called(userID, userRole)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GenerateAccessToken")
@@ -49,16 +50,16 @@ func (_mock *MockTokenManager) GenerateAccessToken(userID uuid.UUID) (string, er
 
 	var r0 string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(uuid.UUID) (string, error)); ok {
-		return returnFunc(userID)
+	if returnFunc, ok := ret.Get(0).(func(uuid.UUID, enums.Role) (string, error)); ok {
+		return returnFunc(userID, userRole)
 	}
-	if returnFunc, ok := ret.Get(0).(func(uuid.UUID) string); ok {
-		r0 = returnFunc(userID)
+	if returnFunc, ok := ret.Get(0).(func(uuid.UUID, enums.Role) string); ok {
+		r0 = returnFunc(userID, userRole)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(uuid.UUID) error); ok {
-		r1 = returnFunc(userID)
+	if returnFunc, ok := ret.Get(1).(func(uuid.UUID, enums.Role) error); ok {
+		r1 = returnFunc(userID, userRole)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -72,18 +73,24 @@ type MockTokenManager_GenerateAccessToken_Call struct {
 
 // GenerateAccessToken is a helper method to define mock.On call
 //   - userID uuid.UUID
-func (_e *MockTokenManager_Expecter) GenerateAccessToken(userID any) *MockTokenManager_GenerateAccessToken_Call {
-	return &MockTokenManager_GenerateAccessToken_Call{Call: _e.mock.On("GenerateAccessToken", userID)}
+//   - userRole enums.Role
+func (_e *MockTokenManager_Expecter) GenerateAccessToken(userID any, userRole any) *MockTokenManager_GenerateAccessToken_Call {
+	return &MockTokenManager_GenerateAccessToken_Call{Call: _e.mock.On("GenerateAccessToken", userID, userRole)}
 }
 
-func (_c *MockTokenManager_GenerateAccessToken_Call) Run(run func(userID uuid.UUID)) *MockTokenManager_GenerateAccessToken_Call {
+func (_c *MockTokenManager_GenerateAccessToken_Call) Run(run func(userID uuid.UUID, userRole enums.Role)) *MockTokenManager_GenerateAccessToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 uuid.UUID
 		if args[0] != nil {
 			arg0 = args[0].(uuid.UUID)
 		}
+		var arg1 enums.Role
+		if args[1] != nil {
+			arg1 = args[1].(enums.Role)
+		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -94,14 +101,14 @@ func (_c *MockTokenManager_GenerateAccessToken_Call) Return(s string, err error)
 	return _c
 }
 
-func (_c *MockTokenManager_GenerateAccessToken_Call) RunAndReturn(run func(userID uuid.UUID) (string, error)) *MockTokenManager_GenerateAccessToken_Call {
+func (_c *MockTokenManager_GenerateAccessToken_Call) RunAndReturn(run func(userID uuid.UUID, userRole enums.Role) (string, error)) *MockTokenManager_GenerateAccessToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GenerateTokenPair provides a mock function for the type MockTokenManager
-func (_mock *MockTokenManager) GenerateTokenPair(userID uuid.UUID) (*TokenPair, error) {
-	ret := _mock.Called(userID)
+func (_mock *MockTokenManager) GenerateTokenPair(userID uuid.UUID, userRole enums.Role) (*TokenPair, error) {
+	ret := _mock.Called(userID, userRole)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GenerateTokenPair")
@@ -109,18 +116,18 @@ func (_mock *MockTokenManager) GenerateTokenPair(userID uuid.UUID) (*TokenPair, 
 
 	var r0 *TokenPair
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(uuid.UUID) (*TokenPair, error)); ok {
-		return returnFunc(userID)
+	if returnFunc, ok := ret.Get(0).(func(uuid.UUID, enums.Role) (*TokenPair, error)); ok {
+		return returnFunc(userID, userRole)
 	}
-	if returnFunc, ok := ret.Get(0).(func(uuid.UUID) *TokenPair); ok {
-		r0 = returnFunc(userID)
+	if returnFunc, ok := ret.Get(0).(func(uuid.UUID, enums.Role) *TokenPair); ok {
+		r0 = returnFunc(userID, userRole)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*TokenPair)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(uuid.UUID) error); ok {
-		r1 = returnFunc(userID)
+	if returnFunc, ok := ret.Get(1).(func(uuid.UUID, enums.Role) error); ok {
+		r1 = returnFunc(userID, userRole)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -134,18 +141,24 @@ type MockTokenManager_GenerateTokenPair_Call struct {
 
 // GenerateTokenPair is a helper method to define mock.On call
 //   - userID uuid.UUID
-func (_e *MockTokenManager_Expecter) GenerateTokenPair(userID any) *MockTokenManager_GenerateTokenPair_Call {
-	return &MockTokenManager_GenerateTokenPair_Call{Call: _e.mock.On("GenerateTokenPair", userID)}
+//   - userRole enums.Role
+func (_e *MockTokenManager_Expecter) GenerateTokenPair(userID any, userRole any) *MockTokenManager_GenerateTokenPair_Call {
+	return &MockTokenManager_GenerateTokenPair_Call{Call: _e.mock.On("GenerateTokenPair", userID, userRole)}
 }
 
-func (_c *MockTokenManager_GenerateTokenPair_Call) Run(run func(userID uuid.UUID)) *MockTokenManager_GenerateTokenPair_Call {
+func (_c *MockTokenManager_GenerateTokenPair_Call) Run(run func(userID uuid.UUID, userRole enums.Role)) *MockTokenManager_GenerateTokenPair_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 uuid.UUID
 		if args[0] != nil {
 			arg0 = args[0].(uuid.UUID)
 		}
+		var arg1 enums.Role
+		if args[1] != nil {
+			arg1 = args[1].(enums.Role)
+		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -156,7 +169,7 @@ func (_c *MockTokenManager_GenerateTokenPair_Call) Return(tokenPair *TokenPair, 
 	return _c
 }
 
-func (_c *MockTokenManager_GenerateTokenPair_Call) RunAndReturn(run func(userID uuid.UUID) (*TokenPair, error)) *MockTokenManager_GenerateTokenPair_Call {
+func (_c *MockTokenManager_GenerateTokenPair_Call) RunAndReturn(run func(userID uuid.UUID, userRole enums.Role) (*TokenPair, error)) *MockTokenManager_GenerateTokenPair_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -750,86 +763,6 @@ func (_c *MockUserRepository_GetUserByNickname_Call) Return(user domains.User, e
 }
 
 func (_c *MockUserRepository_GetUserByNickname_Call) RunAndReturn(run func(ctx context.Context, nickname string) (domains.User, error)) *MockUserRepository_GetUserByNickname_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetUsers provides a mock function for the type MockUserRepository
-func (_mock *MockUserRepository) GetUsers(ctx context.Context, usersIDs []int64, offset int, limit int) ([]domains.User, error) {
-	ret := _mock.Called(ctx, usersIDs, offset, limit)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetUsers")
-	}
-
-	var r0 []domains.User
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, []int64, int, int) ([]domains.User, error)); ok {
-		return returnFunc(ctx, usersIDs, offset, limit)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, []int64, int, int) []domains.User); ok {
-		r0 = returnFunc(ctx, usersIDs, offset, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]domains.User)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, []int64, int, int) error); ok {
-		r1 = returnFunc(ctx, usersIDs, offset, limit)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockUserRepository_GetUsers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUsers'
-type MockUserRepository_GetUsers_Call struct {
-	*mock.Call
-}
-
-// GetUsers is a helper method to define mock.On call
-//   - ctx context.Context
-//   - usersIDs []int64
-//   - offset int
-//   - limit int
-func (_e *MockUserRepository_Expecter) GetUsers(ctx any, usersIDs any, offset any, limit any) *MockUserRepository_GetUsers_Call {
-	return &MockUserRepository_GetUsers_Call{Call: _e.mock.On("GetUsers", ctx, usersIDs, offset, limit)}
-}
-
-func (_c *MockUserRepository_GetUsers_Call) Run(run func(ctx context.Context, usersIDs []int64, offset int, limit int)) *MockUserRepository_GetUsers_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 []int64
-		if args[1] != nil {
-			arg1 = args[1].([]int64)
-		}
-		var arg2 int
-		if args[2] != nil {
-			arg2 = args[2].(int)
-		}
-		var arg3 int
-		if args[3] != nil {
-			arg3 = args[3].(int)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-			arg3,
-		)
-	})
-	return _c
-}
-
-func (_c *MockUserRepository_GetUsers_Call) Return(users []domains.User, err error) *MockUserRepository_GetUsers_Call {
-	_c.Call.Return(users, err)
-	return _c
-}
-
-func (_c *MockUserRepository_GetUsers_Call) RunAndReturn(run func(ctx context.Context, usersIDs []int64, offset int, limit int) ([]domains.User, error)) *MockUserRepository_GetUsers_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -57,7 +57,7 @@ func TestHTTPAuthHandlers_HandleRegister(t *testing.T) {
 	response := w.Result()
 	defer response.Body.Close()
 
-	assert.Equal(t, http.StatusOK, response.StatusCode)
+	assert.Equal(t, http.StatusCreated, response.StatusCode)
 }
 
 func TestHTTPAuthHandlers_HandleLogin(t *testing.T) {
