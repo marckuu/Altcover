@@ -37,6 +37,7 @@ func NewHTTPAdminHandlers(
 // @Security ApiKeyAuth
 // @Accept json
 // @Param user_id path string true "User id"
+// @Param user_role body enums.Role true "Role"
 // @Success 200
 // @Failure 400 {object} errors.ErrorResponse
 // @Failure 500 {object} errors.ErrorResponse

@@ -89,7 +89,7 @@ func (s *ServerManager) StartServer() {
 		Methods("POST").
 		HandlerFunc(
 			s.middleware.RequireRole(
-				enums.Designer,
+				enums.User,
 				http.HandlerFunc(s.designerProfileHandlers.HandleCreateMyDesignerProfile)),
 		)
 

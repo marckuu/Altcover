@@ -70,8 +70,8 @@ func main() {
 	tokenService := services2.NewTokenService(repositories.NewTokenRepository(coonPool), producer)
 	jwtManagerCover := jwtCovers.NewJwtManagerCover(repositories.JwtManager{})
 	userService := services2.NewUserService(repositories.NewUserRepository(coonPool), producer, jwtManagerCover, tokenService)
-	designerProfileService := services.NewDesignerProfileService(repositories2.NewDesignerProfileRepository(coonPool), producer)
 	adminService := services3.NewAdminService(repositories3.NewAdminRepository(coonPool))
+	designerProfileService := services.NewDesignerProfileService(repositories2.NewDesignerProfileRepository(coonPool), producer, adminService)
 
 	serverManager := NewServerManager(
 		tokenService,
