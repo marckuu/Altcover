@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	enums2 "book-cover-service/core/enums"
 	errors2 "book-cover-service/core/errors"
 	"book-cover-service/internal/auth/repositories"
 	"context"
@@ -57,8 +58,8 @@ func (a *AuthMiddleware) ProcessToken(header string) (*repositories.CustomClaims
 	return claims, nil
 }
 
-func (a *AuthMiddleware) Auth(handler http.Handler) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (a *AuthMiddleware) RequireRole(role enums2.Role, handler http.Handler) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 
 		claims, err := a.ProcessToken(authHeader)
@@ -67,9 +68,13 @@ func (a *AuthMiddleware) Auth(handler http.Handler) func(w http.ResponseWriter, 
 			return
 		}
 
+		if claims.Role < role {
+			errors2.SendErrorResponse(w, errors.New("недостаточно прав для выполнения запроса"), http.StatusUnauthorized)
+			return
+		}
+
 		ctx := context.WithValue(r.Context(), ClaimsKey, claims)
 		r = r.WithContext(ctx)
-
 		handler.ServeHTTP(w, r)
-	}
+	})
 }

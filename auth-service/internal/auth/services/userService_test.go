@@ -93,7 +93,7 @@ func TestUserService_Login(t *testing.T) {
 		Return(user, nil)
 
 	tokenManager.
-		On("GenerateTokenPair", user.ID).
+		On("GenerateTokenPair", user.ID, user.Role).
 		Return(&tokenPair,
 			nil)
 
@@ -131,12 +131,13 @@ func TestUserService_Refresh(t *testing.T) {
 		RegisteredClaims: repositoriesMocks.RegisteredClaims{
 			Subject: userUuid.String(),
 		},
+		Role: enums.User,
 	}
 
 	tokenManager.
 		On("Parse", cookie).
 		Return(claims, nil).
-		On("GenerateAccessToken", userUuid).
+		On("GenerateAccessToken", userUuid, claims.Role).
 		Return("accessToken", nil)
 
 	tokenService.

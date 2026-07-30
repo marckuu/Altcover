@@ -3,6 +3,7 @@ package repositories
 import (
 	"auth-service/core/db"
 	"auth-service/core/domains"
+	globalErrors "auth-service/core/errors"
 	"context"
 	"errors"
 	"fmt"
@@ -10,8 +11,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
-
-var errUserNotFound = errors.New("пользователь не найден")
 
 type UserRepository struct {
 	connection db.Database
@@ -47,7 +46,7 @@ func (u *UserRepository) GetUserByID(ctx context.Context, userID uuid.UUID) (dom
 
 	if err := resultRow.Scan(&user.ID, &user.Nickname, &user.Role, &user.CreatedAt, &user.PasswordHash); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return domains.User{}, errUserNotFound
+			return domains.User{}, globalErrors.ErrUserNotFound
 		}
 		return domains.User{}, fmt.Errorf("user repo -> get by id: %w", err)
 	}
@@ -101,7 +100,7 @@ func (u *UserRepository) UpdateUser(ctx context.Context, user domains.User) erro
 	}
 
 	if tag.RowsAffected() == 0 {
-		return errUserNotFound
+		return globalErrors.ErrUserNotFound
 	}
 
 	return nil
@@ -118,7 +117,7 @@ func (u *UserRepository) DeleteUserByID(ctx context.Context, userID uuid.UUID) e
 	}
 
 	if tag.RowsAffected() == 0 {
-		return errUserNotFound
+		return globalErrors.ErrUserNotFound
 	}
 
 	return nil
@@ -136,7 +135,7 @@ func (u *UserRepository) GetUserByNickname(ctx context.Context, nickname string)
 
 	if err := resultRow.Scan(&user.ID, &user.Nickname, &user.Role, &user.PasswordHash, &user.CreatedAt); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return domains.User{}, errUserNotFound
+			return domains.User{}, globalErrors.ErrUserNotFound
 		}
 		return domains.User{}, err
 	}

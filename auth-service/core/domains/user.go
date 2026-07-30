@@ -1,6 +1,7 @@
 package domains
 
 import (
+	"auth-service/core/enums"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,7 +10,7 @@ import (
 type User struct {
 	ID           uuid.UUID
 	Nickname     string
-	Role         int // Это константа из roles
+	Role         enums.Role // Это константа из roles
 	PasswordHash []byte
 	CreatedAt    time.Time
 }

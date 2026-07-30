@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"auth-service/core/domains"
+	"auth-service/core/enums"
 	"context"
 	"testing"
 
@@ -18,7 +19,7 @@ func TestUserRepository_AddUser(t *testing.T) {
 
 	user := domains.User{
 		Nickname:     "Ivan",
-		Role:         1,
+		Role:         enums.User,
 		PasswordHash: passwordHash,
 	}
 
@@ -56,7 +57,7 @@ func TestUserRepository_GetUserByID(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	userID := uuid.New()
 	nickname := "Ivan"
-	role := 1
+	var role enums.Role = enums.User
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte("12345678"), 10)
 	require.NoError(t, err)
 
@@ -88,7 +89,7 @@ func TestUserRepository_GetUserByID(t *testing.T) {
 func TestUserRepository_GetUserByNickname(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	nickname := "Ivan"
-	role := 1
+	var role enums.Role = enums.User
 	userID := uuid.New()
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte("12345678"), 10)
 	require.NoError(t, err)
@@ -122,12 +123,12 @@ func TestUserRepository_UpdateUser(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	userID := uuid.New()
 	nickname := "Ivan"
-	role := 1
+	role := enums.User
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte("12345678"), 10)
 	require.NoError(t, err)
 
 	newNickname := "Paul"
-	newRole := 0
+	var newRole enums.Role = enums.Designer
 	NewPasswordHash, err := bcrypt.GenerateFromPassword([]byte("87654321"), 10)
 	require.NoError(t, err)
 
@@ -174,7 +175,7 @@ func TestUserRepository_DeleteUserByID(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	userID := uuid.New()
 	nickname := "Ivan"
-	role := 1
+	role := enums.User
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte("12345678"), 10)
 	require.NoError(t, err)
 

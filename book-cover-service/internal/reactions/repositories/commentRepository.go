@@ -1,18 +1,17 @@
 package repositories
 
 import (
+	"book-cover-service/core/db"
 	"book-cover-service/core/domains"
 	"context"
 	"errors"
 	"fmt"
-
-	"github.com/jackc/pgx/v5"
 )
 
 var errCommentNotFound = errors.New("комментарий не найден")
 
 type CommentRepository struct {
-	connection *pgx.Conn
+	connection db.Database
 }
 
 func (c *CommentRepository) AddComment(ctx context.Context, comment domains.Comment) error {

@@ -40,7 +40,7 @@ func (d *DesignerProfileRepository) AddDesignerProfile(ctx context.Context, prof
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domains.DesignerProfile{}, errDesignerProfileNotFound
 		}
-		return domains.DesignerProfile{}, fmt.Errorf("designer profile repo -> add: %w", err)
+		return domains.DesignerProfile{}, fmt.Errorf("designer profile repo : add: %w", err)
 	}
 
 	return designerProfile, nil
@@ -60,7 +60,7 @@ func (d *DesignerProfileRepository) GetDesignerProfileByID(ctx context.Context, 
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domains.DesignerProfile{}, errDesignerProfileNotFound
 		}
-		return domains.DesignerProfile{}, fmt.Errorf("designer profile repo -> get by id: %w", err)
+		return domains.DesignerProfile{}, fmt.Errorf("designer profile repo : get by id: %w", err)
 	}
 
 	return designerProfile, nil
@@ -75,7 +75,7 @@ func (d *DesignerProfileRepository) GetDesignersProfiles(ctx context.Context, of
 `
 	resultRows, err := d.connection.Query(ctx, query, offset, limit)
 	if err != nil {
-		return []domains.DesignerProfile{}, fmt.Errorf("designer profile repo -> get all -> query: %w", err)
+		return []domains.DesignerProfile{}, fmt.Errorf("designer profile repo : get all : query: %w", err)
 	}
 
 	defer resultRows.Close()
@@ -85,13 +85,13 @@ func (d *DesignerProfileRepository) GetDesignersProfiles(ctx context.Context, of
 	for resultRows.Next() {
 		profile := domains.DesignerProfile{}
 		if err = resultRows.Scan(&profile.ID, &profile.UserID, &profile.AvatarKey); err != nil {
-			return []domains.DesignerProfile{}, fmt.Errorf("designer profile repo -> get all -> parsing: %w", err)
+			return []domains.DesignerProfile{}, fmt.Errorf("designer profile repo : get all : parsing: %w", err)
 		}
 		profiles = append(profiles, profile)
 	}
 
 	if err = resultRows.Err(); err != nil {
-		return []domains.DesignerProfile{}, fmt.Errorf("designer profile repo -> get all -> query thread: %w", err)
+		return []domains.DesignerProfile{}, fmt.Errorf("designer profile repo : get all : query thread: %w", err)
 	}
 
 	return profiles, nil
@@ -116,7 +116,7 @@ func (d *DesignerProfileRepository) UpdateDesignerProfile(ctx context.Context, p
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domains.DesignerProfile{}, errDesignerProfileNotFound
 		}
-		return domains.DesignerProfile{}, fmt.Errorf("designer profile repo -> add: %w", err)
+		return domains.DesignerProfile{}, fmt.Errorf("designer profile repo : add: %w", err)
 	}
 
 	return designerProfile, nil
@@ -129,7 +129,7 @@ func (d *DesignerProfileRepository) DeleteDesignerProfile(ctx context.Context, p
 `
 	tag, err := d.connection.Exec(ctx, query, profileID)
 	if err != nil {
-		return fmt.Errorf("designer profile repo -> delete: %w", err)
+		return fmt.Errorf("designer profile repo : delete: %w", err)
 	}
 
 	if tag.RowsAffected() == 0 {
@@ -153,7 +153,7 @@ func (d *DesignerProfileRepository) GetDesignerProfileByUserID(ctx context.Conte
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domains.DesignerProfile{}, errDesignerProfileNotFound
 		}
-		return domains.DesignerProfile{}, fmt.Errorf("designer profile repo -> get by user id: %w", err)
+		return domains.DesignerProfile{}, fmt.Errorf("designer profile repo : get by user id: %w", err)
 	}
 
 	return designerProfile, nil

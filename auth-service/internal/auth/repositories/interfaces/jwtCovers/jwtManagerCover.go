@@ -1,6 +1,7 @@
 package jwtCovers
 
 import (
+	"auth-service/core/enums"
 	"auth-service/internal/auth/repositories"
 	"auth-service/internal/auth/repositories/interfaces"
 
@@ -32,11 +33,12 @@ func (j *JwtManagerCover) Parse(token string) (*interfaces.CustomClaims, error) 
 	return &interfaces.CustomClaims{
 		TokenType:        jwtClaims.TokenType,
 		RegisteredClaims: registerClaims,
+		Role:             jwtClaims.Role,
 	}, nil
 }
 
-func (j *JwtManagerCover) GenerateTokenPair(userID uuid.UUID) (*interfaces.TokenPair, error) {
-	tokenPair, err := j.jwtManager.GenerateTokenPair(userID)
+func (j *JwtManagerCover) GenerateTokenPair(userID uuid.UUID, userRole enums.Role) (*interfaces.TokenPair, error) {
+	tokenPair, err := j.jwtManager.GenerateTokenPair(userID, userRole)
 	if err != nil {
 		return nil, err
 	}
@@ -44,8 +46,8 @@ func (j *JwtManagerCover) GenerateTokenPair(userID uuid.UUID) (*interfaces.Token
 
 }
 
-func (j *JwtManagerCover) GenerateAccessToken(userID uuid.UUID) (string, error) {
-	return j.jwtManager.GenerateAccessToken(userID)
+func (j *JwtManagerCover) GenerateAccessToken(userID uuid.UUID, userRole enums.Role) (string, error) {
+	return j.jwtManager.GenerateAccessToken(userID, userRole)
 }
 
 func (j *JwtManagerCover) IsAccessToken(claims *interfaces.CustomClaims) bool {

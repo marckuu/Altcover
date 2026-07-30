@@ -2,25 +2,34 @@ package services
 
 import (
 	"auth-service/core/domains"
+	"auth-service/core/enums"
 	"auth-service/core/shared"
 	"auth-service/core/shared/messaging"
+	interfaces2 "auth-service/internal/admin/services/interfaces"
 	"auth-service/internal/designerProfiles/repositories/interfaces"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
 )
 
+var errDesignerProfileNotFound = errors.New("профиль дизайнера не найден")
+
 type DesignerProfileService struct {
 	designerProfileRepository interfaces.DesignerProfileRepository
+	adminService              interfaces2.AdminService
 	producer                  *messaging.Producer
 }
 
-func NewDesignerProfileService(repository interfaces.DesignerProfileRepository, producer *messaging.Producer) *DesignerProfileService {
+func NewDesignerProfileService(repository interfaces.DesignerProfileRepository,
+	producer *messaging.Producer,
+	adminService interfaces2.AdminService) *DesignerProfileService {
 	return &DesignerProfileService{
 		designerProfileRepository: repository,
 		producer:                  producer,
+		adminService:              adminService,
 	}
 }
 
@@ -61,8 +70,10 @@ func (d *DesignerProfileService) DeleteDesignerProfile(ctx context.Context, prof
 
 func (d *DesignerProfileService) CreateDesignerProfileToUser(ctx context.Context, userID uuid.UUID, designerProfile domains.DesignerProfile) (domains.DesignerProfile, error) {
 	_, err := d.designerProfileRepository.GetDesignerProfileByUserID(ctx, userID)
-	if err == nil {
+	if errors.Is(err, errDesignerProfileNotFound) {
 		return domains.DesignerProfile{}, fmt.Errorf("профиль дизайнера уже существует: %w", err)
+	} else if err == nil {
+		return domains.DesignerProfile{}, err
 	}
 
 	savedProfile, err := d.designerProfileRepository.AddDesignerProfile(ctx, designerProfile)
@@ -83,6 +94,13 @@ func (d *DesignerProfileService) CreateDesignerProfileToUser(ctx context.Context
 	}
 
 	if err = d.producer.Produce(message); err != nil {
+		return domains.DesignerProfile{}, err
+	}
+
+	if err = d.adminService.ChangeRole(ctx, userID, enums.Designer); err != nil {
+		if err2 := d.designerProfileRepository.DeleteDesignerProfile(ctx, savedProfile.ID); err2 != nil {
+			return domains.DesignerProfile{}, err2
+		}
 		return domains.DesignerProfile{}, err
 	}
 
@@ -146,6 +164,10 @@ func (d *DesignerProfileService) DeleteDesignerProfileToUser(ctx context.Context
 	}
 
 	if err = d.producer.Produce(message); err != nil {
+		return err
+	}
+
+	if err = d.adminService.ChangeRole(ctx, userID, enums.User); err != nil {
 		return err
 	}
 

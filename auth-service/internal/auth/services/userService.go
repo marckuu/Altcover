@@ -69,7 +69,7 @@ func (u *UserService) Login(ctx context.Context, loginRequest dto.LoginRequest) 
 		return &authRepositoryInterfaces.TokenPair{}, fmt.Errorf("неверный пароль: %w", err)
 	}
 
-	tokenPair, err := u.tokenManager.GenerateTokenPair(user.ID)
+	tokenPair, err := u.tokenManager.GenerateTokenPair(user.ID, user.Role)
 	if err != nil {
 		return &authRepositoryInterfaces.TokenPair{}, fmt.Errorf("не удалось сгенерировать jwtCovers токены: %w", err)
 	}
@@ -102,7 +102,7 @@ func (u *UserService) Refresh(ctx context.Context, cookieValue string) (string, 
 		return "", fmt.Errorf("ошибка получения id пользователя из refresh токена: %w", err)
 	}
 
-	accessToken, err := u.tokenManager.GenerateAccessToken(userID)
+	accessToken, err := u.tokenManager.GenerateAccessToken(userID, claims.Role)
 	if err != nil {
 		return "", fmt.Errorf("не удалось сгенерировать access токен: %w", err)
 	}

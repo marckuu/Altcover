@@ -1,6 +1,7 @@
 package interfaces
 
 import (
+	"auth-service/core/enums"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,8 +10,8 @@ import (
 type TokenManager interface {
 	Parse(token string) (*CustomClaims, error)
 	IsAccessToken(claims *CustomClaims) bool
-	GenerateTokenPair(userID uuid.UUID) (*TokenPair, error)
-	GenerateAccessToken(userID uuid.UUID) (string, error)
+	GenerateTokenPair(userID uuid.UUID, userRole enums.Role) (*TokenPair, error)
+	GenerateAccessToken(userID uuid.UUID, userRole enums.Role) (string, error)
 }
 
 type TokenPair struct {
@@ -19,8 +20,9 @@ type TokenPair struct {
 }
 
 type CustomClaims struct {
-	TokenType        string `json:"token_type"`
-	RegisteredClaims RegisteredClaims
+	TokenType        string           `json:"token_type"`
+	Role             enums.Role       `json:"role"`
+	RegisteredClaims RegisteredClaims `json:"registered_claims"`
 }
 
 type RegisteredClaims struct {

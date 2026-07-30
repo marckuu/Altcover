@@ -5,6 +5,8 @@ import (
 	logs "auth-service/core/logger"
 	"auth-service/core/logger/zap"
 	"auth-service/core/shared/messaging"
+	repositories3 "auth-service/internal/admin/repositories"
+	services3 "auth-service/internal/admin/services"
 	"auth-service/internal/auth/repositories"
 	"auth-service/internal/auth/repositories/interfaces/jwtCovers"
 	services2 "auth-service/internal/auth/services"
@@ -68,12 +70,14 @@ func main() {
 	tokenService := services2.NewTokenService(repositories.NewTokenRepository(coonPool), producer)
 	jwtManagerCover := jwtCovers.NewJwtManagerCover(repositories.JwtManager{})
 	userService := services2.NewUserService(repositories.NewUserRepository(coonPool), producer, jwtManagerCover, tokenService)
-	designerProfileService := services.NewDesignerProfileService(repositories2.NewDesignerProfileRepository(coonPool), producer)
+	adminService := services3.NewAdminService(repositories3.NewAdminRepository(coonPool))
+	designerProfileService := services.NewDesignerProfileService(repositories2.NewDesignerProfileRepository(coonPool), producer, adminService)
 
 	serverManager := NewServerManager(
 		tokenService,
 		userService,
 		designerProfileService,
+		adminService,
 		jwtManagerCover,
 		ctx,
 		loggerCover,
